@@ -362,6 +362,12 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# Allow tracking specific generated C++/WinRT outputs
+!Generated Files/
+!Generated Files/winrt/
+!Generated Files/winrt/impl/
+!Generated Files/sources/
+
 # ignores
 BKUP1/
 Common/BKUP/
