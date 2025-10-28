@@ -1,0 +1,116 @@
+<Page
+    x:Class="Hot3dxBlankApp2WinRTVS2026.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Hot3dxBlankApp2WinRTVS2026"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Control Panel -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Padding="10" Background="#FF202020">
+            <TextBlock Text="RotoDraw3D (Hot3dxSymmetry3D)" 
+                       VerticalAlignment="Center" 
+                       Margin="10,0"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Foreground="White"/>
+            
+            <TextBlock Text="Symmetry:" 
+                       VerticalAlignment="Center" 
+                       Margin="20,0,5,0"
+                       Foreground="White"/>
+            <Slider x:Name="SymmetrySlider" 
+                    Minimum="1" 
+                    Maximum="16" 
+                    Value="8" 
+                    Width="150"
+                    VerticalAlignment="Center"
+                    ValueChanged="SymmetrySlider_ValueChanged"/>
+            <TextBlock x:Name="SymmetryText" 
+                       Text="8" 
+                       VerticalAlignment="Center" 
+                       Margin="5,0,20,0"
+                       Width="30"
+                       Foreground="White"/>
+            
+            <TextBlock Text="Brush Size:" 
+                       VerticalAlignment="Center" 
+                       Margin="20,0,5,0"
+                       Foreground="White"/>
+            <Slider x:Name="BrushSizeSlider" 
+                    Minimum="1" 
+                    Maximum="20" 
+                    Value="5" 
+                    Width="150"
+                    VerticalAlignment="Center"
+                    ValueChanged="BrushSizeSlider_ValueChanged"/>
+            
+            <Button Content="Clear" 
+                    Margin="20,0,10,0"
+                    Click="ClearButton_Click"/>
+            
+            <CheckBox x:Name="MirrorCheckBox" 
+                      Content="Mirror Mode" 
+                      Margin="10,0"
+                      VerticalAlignment="Center"
+                      Foreground="White"
+                      Checked="MirrorCheckBox_Changed"
+                      Unchecked="MirrorCheckBox_Changed"/>
+            
+            <TextBlock Text="Color:" 
+                       VerticalAlignment="Center" 
+                       Margin="20,0,5,0"
+                       Foreground="White"/>
+            <Button x:Name="ColorButton1" 
+                    Background="Magenta" 
+                    Width="30" 
+                    Height="30" 
+                    Margin="5,0"
+                    Click="ColorButton_Click" 
+                    Tag="Magenta"/>
+            <Button x:Name="ColorButton2" 
+                    Background="Cyan" 
+                    Width="30" 
+                    Height="30" 
+                    Margin="5,0"
+                    Click="ColorButton_Click" 
+                    Tag="Cyan"/>
+            <Button x:Name="ColorButton3" 
+                    Background="Yellow" 
+                    Width="30" 
+                    Height="30" 
+                    Margin="5,0"
+                    Click="ColorButton_Click" 
+                    Tag="Yellow"/>
+            <Button x:Name="ColorButton4" 
+                    Background="Lime" 
+                    Width="30" 
+                    Height="30" 
+                    Margin="5,0"
+                    Click="ColorButton_Click" 
+                    Tag="Lime"/>
+            <Button x:Name="ColorButton5" 
+                    Background="Red" 
+                    Width="30" 
+                    Height="30" 
+                    Margin="5,0"
+                    Click="ColorButton_Click" 
+                    Tag="Red"/>
+        </StackPanel>
+
+        <!-- Drawing Canvas -->
+        <SwapChainPanel x:Name="DrawingPanel" 
+                        Grid.Row="1"
+                        PointerPressed="DrawingPanel_PointerPressed"
+                        PointerMoved="DrawingPanel_PointerMoved"
+                        PointerReleased="DrawingPanel_PointerReleased"/>
+    </Grid>
+</Page>

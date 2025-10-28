@@ -1,0 +1,73 @@
+## Visual Studio
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+ARM/
+ARM64/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+*.suo
+*.user
+
+# NuGet Packages
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# AppPackages
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+env/
+venv/
+
+# Asset creation script
+Hot3dxBlankApp2WinRTVS2026/Assets/create_assets.sh
+
+# Temporary files
+*.tmp
+*.temp
+*~
