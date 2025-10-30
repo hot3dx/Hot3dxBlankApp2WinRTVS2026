@@ -27,7 +27,7 @@ namespace DX
 	{
 	public:
 		DeviceResources(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT);
-		void SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel* panel, winrt::Windows::UI::Core::CoreWindow const& window);
+		void SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel const& panel, winrt::Windows::UI::Core::CoreWindow const& window);
 		void SetWindow(winrt::Windows::UI::Core::CoreWindow const& window);
 		void SetLogicalSize(winrt::Windows::Foundation::Size logicalSize);
 		void SetCurrentOrientation(winrt::Windows::Graphics::Display::DisplayOrientations currentOrientation);
@@ -60,6 +60,7 @@ namespace DX
 		D3D12_VIEWPORT				GetScreenViewport() const { return m_screenViewport; }
 		DirectX::XMFLOAT4X4			GetOrientationTransform3D() const { return m_orientationTransform3D; }
 		UINT						GetCurrentFrameIndex() const { return m_currentFrame; }
+		winrt::Windows::UI::Xaml::Controls::SwapChainPanel GetSwapChainPanelDXDevResources() { return m_swapChainPanel; }
 
 		CD3DX12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const
 		{
@@ -69,6 +70,7 @@ namespace DX
 		{
 			return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_DsvHeap->GetCPUDescriptorHandleForHeapStart());
 		}
+
 
 	private:
 		void CreateDeviceIndependentResources();
@@ -84,7 +86,7 @@ namespace DX
 		// Direct3D objects (use winrt::com_ptr consistently).
 		winrt::com_ptr<ID3D12Device>					m_D3dDevice;
 		winrt::com_ptr<IDXGIFactory4>					m_DxgiFactory;
-		winrt::com_ptr<IDXGISwapChain3>				m_SwapChain;
+		winrt::com_ptr<IDXGISwapChain3>				    m_SwapChain;
 		winrt::com_ptr<ID3D12Resource>					m_RenderTargets[c_frameCount];
 		winrt::com_ptr<ID3D12Resource>					m_DepthStencil;
 		winrt::com_ptr<ID3D12DescriptorHeap>			m_RtvHeap;
@@ -106,7 +108,7 @@ namespace DX
 		winrt::agile_ref<winrt::Windows::UI::Core::CoreWindow> m_window{ nullptr };
 
 		// Cached reference to the XAML panel.
-		winrt::Windows::UI::Xaml::Controls::SwapChainPanel* m_swapChainPanel{ nullptr };
+		winrt::Windows::UI::Xaml::Controls::SwapChainPanel m_swapChainPanel{ nullptr };
 
 		// Cached device properties.
 		winrt::Windows::Foundation::Size						m_d3dRenderTargetSize;

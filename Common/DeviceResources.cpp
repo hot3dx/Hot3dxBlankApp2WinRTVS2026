@@ -1,5 +1,4 @@
-﻿// cpp Common-DeviceResources.cpp
-#include "pch.h"
+﻿#include "pch.h"
 
 #include "d3dx12.h"
 #include "DeviceResources.h"
@@ -23,6 +22,15 @@ using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Graphics::Display;
 using namespace winrt::Windows::UI::Core;
 using namespace winrt::Windows::UI::Xaml::Controls;
+
+// Local minimal COM interface declaration for ISwapChainPanelNative.
+// This resolves "pointer or reference to incomplete type" errors by providing
+// the method signature used in this file.
+// IID: 94D99BDB-F1F8-4AB0-B236-7DA0170EDAB1
+struct __declspec(uuid("94D99BDB-F1F8-4AB0-B236-7DA0170EDAB1")) ISwapChainPanelNative : public ::IUnknown
+{
+    virtual HRESULT __stdcall SetSwapChain(::IDXGISwapChain* swapChain) = 0;
+};
 
 namespace DisplayMetrics
 {
@@ -84,10 +92,10 @@ DX::DeviceResources::DeviceResources(DXGI_FORMAT backBufferFormat, DXGI_FORMAT d
 {
 	CreateDeviceIndependentResources();
 	CreateDeviceResources();
-	//CreateWindowSizeDependentResources();
+	CreateWindowSizeDependentResources();
 }
 
-void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel* panel, winrt::Windows::UI::Core::CoreWindow const& window)
+void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel const& panel, winrt::Windows::UI::Core::CoreWindow const& window)
 {
 	m_swapChainPanel = panel;
 
@@ -220,9 +228,9 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	if (m_SwapChain)
 	{
 		// If the swap chain already exists, resize it.
-		HRESULT hr = m_SwapChain->ResizeBuffers(c_frameCount, backBufferWidth, backBufferHeight, m_backBufferFormat, 0);
+		HRESULT hrResize = m_SwapChain->ResizeBuffers(c_frameCount, backBufferWidth, backBufferHeight, m_backBufferFormat, 0);
 
-		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+		if (hrResize == DXGI_ERROR_DEVICE_REMOVED || hrResize == DXGI_ERROR_DEVICE_RESET)
 		{
 			// If the device was removed for any reason, a new device and swap chain will need to be created.
 			m_deviceRemoved = true;
@@ -230,7 +238,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		}
 		else
 		{
-			DX::ThrowIfFailed(hr);
+			DX::ThrowIfFailed(hrResize);
 		}
 	}
 	else
@@ -252,32 +260,57 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		swapChainDesc.Scaling = scaling;
 		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 
-		winrt::com_ptr<::IUnknown> unk;
-
-		// Query CoreWindow IUnknown from stored agile_ref
-		auto windowObj = m_window.get();
-		winrt::Windows::UI::Core::CoreWindow* coreWindowPtr = &windowObj;
-		HRESULT hr = coreWindowPtr->as(__uuidof(::IUnknown), unk.put_void());
-		DX::ThrowIfFailed(hr);
-
-		winrt::com_ptr<IDXGISwapChain1> swapChain1;
-		DX::ThrowIfFailed(
-			m_DxgiFactory->CreateSwapChainForCoreWindow(
-				m_CommandQueue.get(),		// Swap chains need a reference to the command queue in DirectX 12.
-				unk.get(),
-				&swapChainDesc,
-				nullptr,
-				swapChain1.put()
-			)
+		HRESULT hrCreate = m_DxgiFactory->CreateSwapChainForComposition(
+			m_CommandQueue.get(),		// Swap chains need a reference to the command queue in DirectX 12.
+			&swapChainDesc,
+			nullptr,
+			reinterpret_cast<IDXGISwapChain1**>(m_SwapChain.put())
 		);
+
+		DX::ThrowIfFailed(hrCreate);
 
 		// Promote to IDXGISwapChain3
 		winrt::com_ptr<IDXGISwapChain3> swapChain3;
+		winrt::com_ptr<IDXGISwapChain1> swapChain1 = m_SwapChain;
 		swapChain1.as(swapChain3);
 		m_SwapChain = swapChain3;
+
+		// Attach swap chain to SwapChainPanel via ISwapChainPanelNative (must be done on UI thread)
+
+		if (m_swapChainPanel)
+		{
+			// Get the ISwapChainPanelNative interface from the SwapChainPanel
+			winrt::com_ptr<::IUnknown> panelUnknown = nullptr;
+			panelUnknown.attach(reinterpret_cast<::IUnknown*>(winrt::get_abi(m_swapChainPanel)));
+
+			// ISwapChainPanelNative is a COM interface, not a WinRT interface.
+			ISwapChainPanelNative* panelNative = nullptr;
+			HRESULT hrQ = panelUnknown->QueryInterface(__uuidof(ISwapChainPanelNative), reinterpret_cast<void**>(&panelNative));
+			if (SUCCEEDED(hrQ) && panelNative)
+			{
+				HRESULT hrSet = panelNative->SetSwapChain(m_SwapChain.get());
+				if (FAILED(hrSet))
+				{
+					OutputDebugStringA("ERROR: ISwapChainPanelNative::SetSwapChain FAILED\n");
+				}
+				panelNative->Release();
+			}
+			else
+			{
+				OutputDebugStringA("ERROR: QueryInterface(ISwapChainPanelNative) FAILED\n");
+			}
+		}
+		
 	}
 
-	// Set the proper orientation for the swap chain, and generate 3D matrix transformations.
+		// Set the proper orientation for the swap chain, and generate 3D matrix transformations.
+		if (displayRotation == DXGI_MODE_ROTATION_UNSPECIFIED)
+		{
+			// Some platforms/drivers may return UNSPECIFIED (0). Map that to IDENTITY
+			// so we don't call SetRotation with an invalid value.
+			displayRotation = DXGI_MODE_ROTATION_IDENTITY;
+		}
+
 	switch (displayRotation)
 	{
 	case DXGI_MODE_ROTATION_IDENTITY:
@@ -297,10 +330,21 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		break;
 
 	default:
-		throw winrt::hresult_error(E_FAIL);
+		// Defensive fallback
+		m_orientationTransform3D = ScreenRotation::Rotation0;
+		break;
 	}
 
-	DX::ThrowIfFailed(m_SwapChain->SetRotation(displayRotation));
+	HRESULT hrRotate = m_SwapChain->SetRotation(displayRotation);
+	if (FAILED(hrRotate))
+	{
+		char buf[128];
+		sprintf_s(buf, "ERROR: IDXGISwapChain::SetRotation FAILED: %08X\n", static_cast<unsigned>(hrRotate));
+		OutputDebugStringA(buf);
+	}
+	DX::ThrowIfFailed(hrRotate);
+
+
 
 	// Create render target views of the swap chain back buffer.
 	{
@@ -316,7 +360,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			WCHAR name[32];
 			if (swprintf_s(name, L"m_renderTargets[%u]", n) > 0)
 			{
-				DX::SetName(renderTarget, name);
+				DX::SetName(renderTarget, (LPCWSTR)name);
 			}
 		}
 	}
