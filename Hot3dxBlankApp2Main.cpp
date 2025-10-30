@@ -26,7 +26,7 @@ Hot3dxBlankApp2Main::Hot3dxBlankApp2Main(const std::shared_ptr<DeviceResources>&
 	m_deviceResources->RegisterDeviceNotify(this);
 
 	// TODO: Replace this with your app's content initialization.
-	//SetSceneRenderer();
+	SetSceneRenderer();
 	
 }
 
