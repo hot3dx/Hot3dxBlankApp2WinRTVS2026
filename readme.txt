@@ -25,6 +25,6 @@ Learn more about C++/WinRT here:
 http://aka.ms/cppwinrt/
 ========================================================================
 
-(https://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/blob/wip/local-save/Halloween10_31_2025__4_49_pm.png)
+![png](https://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/blob/wip/local-save/Halloween10_31_2025__4_49_pm.png)
 
 
