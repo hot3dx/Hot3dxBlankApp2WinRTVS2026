@@ -1,6 +1,9 @@
 ========================================================================
     C++/WinRT Hot3dxBlankApp2 Project Overview
 ========================================================================
+# Project Title
+
+Yes, Folks it is the Spinning Cube In Xaml C 17/C++ 20 winrt Xaml Tada!
 
 This project demonstrates how to get started writing XAML apps directly
 with standard C++, using the C++/WinRT SDK component and XAML compiler 
@@ -22,5 +25,10 @@ Learn more about C++/WinRT here:
 http://aka.ms/cppwinrt/
 ========================================================================
 
+<p align="center">
+  <img src="https://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/blob/wip/local-save/Halloween10_31_2025__4_49_pm.png" alt="App screenshot" width="640"/>
+</p>
 
-![Halloween10_31_2025__4_49_pm.png](https://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/blob/wip/local-save/Halloween10_31_2025__4_49_pm.png)
+# Project Title
+
+Yes, Folks it is the Spinning Cube In Xaml 
