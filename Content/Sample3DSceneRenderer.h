@@ -17,6 +17,7 @@ namespace winrt::Hot3dxBlankApp2
 		void CreateWindowSizeDependentResources();
 		void Update(DX::StepTimer const& timer);
 		bool Render();
+		void Clear();
 		void SaveState();
 
 		void StartTracking();
@@ -28,7 +29,9 @@ namespace winrt::Hot3dxBlankApp2
 		void OnDeviceLost();
 		void OnDeviceRestored();
 
-	private:
+
+		bool GetLoadingComplete() const { return m_loadingComplete; }
+		winrt::com_ptr<ID3D12GraphicsCommandList> GetCommandList() { return m_commandList; }
 		void LoadState();
 		void Rotate(float radians);
 
@@ -48,7 +51,7 @@ namespace winrt::Hot3dxBlankApp2
 		winrt::com_ptr<ID3D12Resource>				m_indexBuffer;
 		winrt::com_ptr<ID3D12Resource>				m_constantBuffer;
 		ModelViewProjectionConstantBuffer					m_constantBufferData;
-		UINT8*												m_mappedConstantBuffer;
+		UINT8* m_mappedConstantBuffer;
 		UINT												m_cbvDescriptorSize;
 		D3D12_RECT											m_scissorRect;
 		std::vector<BYTE>          							m_vertexShader;
@@ -63,4 +66,3 @@ namespace winrt::Hot3dxBlankApp2
 		bool	m_tracking;
 	};
 }
-

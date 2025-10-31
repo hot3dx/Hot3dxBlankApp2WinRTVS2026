@@ -1,5 +1,4 @@
-﻿// cpp Common-DeviceResources.cpp
-#include "pch.h"
+﻿#include "pch.h"
 
 #include "d3dx12.h"
 #include "DeviceResources.h"
@@ -7,6 +6,7 @@
 #include <dxgidebug.h>
 #include <dxgiformat.h>
 #include "DirectXHelper.h"
+#include "DirectXIUnknowns.h"
 #include <windows.h>
 #include <synchapi.h>
 #include <unknwn.h>
@@ -19,10 +19,22 @@
 
 using namespace DirectX;
 
-using namespace winrt::Windows::Foundation;
+namespace wf = winrt::Windows::Foundation;
 using namespace winrt::Windows::Graphics::Display;
 using namespace winrt::Windows::UI::Core;
 using namespace winrt::Windows::UI::Xaml::Controls;
+
+
+
+
+// Local minimal COM interface declaration for ISwapChainPanelNative.
+// This resolves "pointer or reference to incomplete type" errors by providing
+// the method signature used in this file.
+// IID: 94D99BDB-F1F8-4AB0-B236-7DA0170EDAB1
+//struct __declspec(uuid("94D99BDB-F1F8-4AB0-B236-7DA0170EDAB1")) ISwapChainPanelNative : public ::IUnknown
+//{
+//    virtual HRESULT __stdcall SetSwapChain(::IDXGISwapChain* swapChain) = 0;
+//};
 
 namespace DisplayMetrics
 {
@@ -87,18 +99,53 @@ DX::DeviceResources::DeviceResources(DXGI_FORMAT backBufferFormat, DXGI_FORMAT d
 	//CreateWindowSizeDependentResources();
 }
 
-void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel* panel, winrt::Windows::UI::Core::CoreWindow const& window)
+void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel const& panel, winrt::Windows::UI::Core::CoreWindow const& window)
 {
+	auto sender = panel.as<winrt::Windows::UI::Xaml::Controls::SwapChainPanel>();
+	float aw = static_cast<float>(sender.ActualWidth());
+	float ah = static_cast<float>(sender.ActualHeight());
+	float csx = static_cast<float>(sender.CompositionScaleX());
+	float csy = static_cast<float>(sender.CompositionScaleY());
+	char msg[256];
+	sprintf_s(msg, "INFO: SwapChainPanel Loaded ActualWidth=%.2f ActualHeight=%.2f CompScaleX=%.2f CompScaleY=%.2f\n",
+		aw, ah, csx, csy);
+	OutputDebugStringA(msg);
+
 	m_swapChainPanel = panel;
 
-	DisplayInformation currentDisplayInformation = DisplayInformation::GetForCurrentView();
+	// Prefer the SwapChainPanel measured size for logical size (in DIPs) when available.
+	// Fallback to CoreWindow bounds when panel measurement is not ready.
+	if (aw > 0.0f && ah > 0.0f)
+	{
+		m_logicalSize = winrt::Windows::Foundation::Size(aw, ah);
+	}
+	else
+	{
+		m_logicalSize = winrt::Windows::Foundation::Size(window.Bounds().Width, window.Bounds().Height);
+	}
 
-	m_logicalSize = winrt::Windows::Foundation::Size(window.Bounds().Width, window.Bounds().Height);
+	DisplayInformation currentDisplayInformation = DisplayInformation::GetForCurrentView();
 	m_nativeOrientation = currentDisplayInformation.NativeOrientation();
 	m_currentOrientation = currentDisplayInformation.CurrentOrientation();
 	m_dpi = currentDisplayInformation.LogicalDpi();
 
+	m_isSwapPanelVisible = true;
 	//CreateWindowSizeDependentResources();
+	if (m_swapChainPanel)
+	{
+		if (m_SwapChain) {
+			// Get the IUnknown for the WinRT SwapChainPanel and query the native interface in a safe winrt way.
+			// Get the WinRT object and convert to a native IUnknown wrapper
+			HRESULT hr = AttachSwapChainToSwapChainPanel(m_swapChainPanel, m_SwapChain.get());
+			DX::ThrowIfFailed(hr);
+
+			sprintf_s(msg, "INFO: Attached swap chain to SwapChainPanel successfully.\n");
+			OutputDebugStringA(msg);
+
+			TestClearAndPresentOnce();
+
+		}
+	}
 }
 
 // Configures resources that don't depend on the Direct3D device.
@@ -141,14 +188,26 @@ HRESULT hr = D3D12CreateDevice(
 #if defined(_DEBUG)
 if (FAILED(hr))
 {
-	// If the initialization fails, fall back to the WARP device.
-	winrt::com_ptr<IDXGIAdapter> WarpAdapter;
-	winrt::check_hresult(m_DxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter)));
-	hr = D3D12CreateDevice(WarpAdapter.get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_D3dDevice));
-}
-#endif
+	char buf[256];
+	sprintf_s(buf, "WARN: D3D12CreateDevice failed: 0x%08X\n", static_cast<unsigned>(hr));
+	OutputDebugStringA(buf);
 
+	// Try WARP but log result
+	winrt::com_ptr<IDXGIAdapter> WarpAdapter;
+	HRESULT hrEnum = m_DxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter));
+	sprintf_s(buf, "INFO: EnumWarpAdapter returned: 0x%08X\n", static_cast<unsigned>(hrEnum));
+	OutputDebugStringA(buf);
+
+	if (SUCCEEDED(hrEnum))
+	{
+		HRESULT hrWarp = D3D12CreateDevice(WarpAdapter.get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_D3dDevice));
+		sprintf_s(buf, "INFO: D3D12CreateDevice(WARP) returned: 0x%08X\n", static_cast<unsigned>(hrWarp));
+		OutputDebugStringA(buf);
+		hr = hrWarp;
+	}
+}
 DX::ThrowIfFailed(hr);
+#endif
 
 // Create the command queue.
 D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -217,12 +276,39 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	UINT backBufferWidth = lround(m_d3dRenderTargetSize.Width);
 	UINT backBufferHeight = lround(m_d3dRenderTargetSize.Height);
 
+	// If we have a SwapChainPanel, account for its composition scale (the panel can be DPI/scaled).
+	if (m_SwapChain)
+	{
+		try
+		{
+			float csx = static_cast<float>(m_swapChainPanel.CompositionScaleX());
+			float csy = static_cast<float>(m_swapChainPanel.CompositionScaleY());
+
+			// CompositionScale multiplies DIPs to compositor pixels; apply before creating swap chain
+			// (convert logical DIPs -> pixels already happened via UpdateRenderTargetSize using DPI).
+			UINT scaledWidth = static_cast<UINT>(max(1u, static_cast<UINT>(std::lround(backBufferWidth * csx))));
+			UINT scaledHeight = static_cast<UINT>(max(1u, static_cast<UINT>(std::lround(backBufferHeight * csy))));
+
+			char buf[256];
+			sprintf_s(buf, "INFO: Panel composition scale applied: csx=%.2f csy=%.2f -> pixel W=%u H=%u (pre=%u,%u)\n",
+				csx, csy, scaledWidth, scaledHeight, backBufferWidth, backBufferHeight);
+			OutputDebugStringA(buf);
+
+			backBufferWidth = scaledWidth;
+			backBufferHeight = scaledHeight;
+		}
+		catch (...)
+		{
+			OutputDebugStringA("WARN: Failed to read CompositionScale from SwapChainPanel; using default sizes\n");
+		}
+	}
+
 	if (m_SwapChain)
 	{
 		// If the swap chain already exists, resize it.
-		HRESULT hr = m_SwapChain->ResizeBuffers(c_frameCount, backBufferWidth, backBufferHeight, m_backBufferFormat, 0);
+		HRESULT hrResize = m_SwapChain->ResizeBuffers(c_frameCount, backBufferWidth, backBufferHeight, m_backBufferFormat, 0);
 
-		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+		if (hrResize == DXGI_ERROR_DEVICE_REMOVED || hrResize == DXGI_ERROR_DEVICE_RESET)
 		{
 			// If the device was removed for any reason, a new device and swap chain will need to be created.
 			m_deviceRemoved = true;
@@ -230,7 +316,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		}
 		else
 		{
-			DX::ThrowIfFailed(hr);
+			DX::ThrowIfFailed(hrResize);
 		}
 	}
 	else
@@ -252,32 +338,71 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		swapChainDesc.Scaling = scaling;
 		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 
-		winrt::com_ptr<::IUnknown> unk;
-
-		// Query CoreWindow IUnknown from stored agile_ref
-		auto windowObj = m_window.get();
-		winrt::Windows::UI::Core::CoreWindow* coreWindowPtr = &windowObj;
-		HRESULT hr = coreWindowPtr->as(__uuidof(::IUnknown), unk.put_void());
-		DX::ThrowIfFailed(hr);
-
-		winrt::com_ptr<IDXGISwapChain1> swapChain1;
-		DX::ThrowIfFailed(
-			m_DxgiFactory->CreateSwapChainForCoreWindow(
-				m_CommandQueue.get(),		// Swap chains need a reference to the command queue in DirectX 12.
-				unk.get(),
-				&swapChainDesc,
-				nullptr,
-				swapChain1.put()
-			)
+		HRESULT hrCreate = m_DxgiFactory->CreateSwapChainForComposition(
+			m_CommandQueue.get(),		// Swap chains need a reference to the command queue in DirectX 12.
+			&swapChainDesc,
+			nullptr,
+			reinterpret_cast<IDXGISwapChain1**>(m_SwapChain.put())
 		);
 
+		DX::ThrowIfFailed(hrCreate);
+		{
+			if (m_SwapChain)
+			{
+				DXGI_SWAP_CHAIN_DESC1 desc = {};
+				if (SUCCEEDED(m_SwapChain->GetDesc1(&desc)))
+				{
+					char buf[256];
+					sprintf_s(buf, "INFO: SwapChainDesc Width=%u Height=%u Buffers=%u Format=%u SwapEffect=%u\n",
+						desc.Width, desc.Height, desc.BufferCount, desc.Format, desc.SwapEffect);
+					OutputDebugStringA(buf);
+				}
+				else
+				{
+					OutputDebugStringA("WARN: Failed to get SwapChainDesc1\n");
+				}
+
+				// Confirm GetBuffer / RTV creation
+				for (UINT n = 0; n < c_frameCount; ++n)
+				{
+					winrt::com_ptr<ID3D12Resource> buf;
+					HRESULT hr = m_SwapChain->GetBuffer(n, IID_PPV_ARGS(&buf));
+					char bufMsg[128];
+					sprintf_s(bufMsg, "INFO: GetBuffer(%u) hr=%08X ptr=%p\n", n, static_cast<unsigned>(hr), static_cast<void*>(buf.get()));
+					OutputDebugStringA(bufMsg);
+				}
+			}
+			else
+			{
+				OutputDebugStringA("ERROR: m_SwapChain is null after creation\n");
+			}
+		}
+	}
 		// Promote to IDXGISwapChain3
 		winrt::com_ptr<IDXGISwapChain3> swapChain3;
+		winrt::com_ptr<IDXGISwapChain1> swapChain1 = m_SwapChain;
 		swapChain1.as(swapChain3);
 		m_SwapChain = swapChain3;
-	}
+		/*
+		// Attach swap chain to SwapChainPanel via ISwapChainPanelNative (must be done on UI thread)
+		m_swapChainPanel.Dispatcher().RunAsync(
+			winrt::Windows::UI::Core::CoreDispatcherPriority::Normal,
+			[this]() {
+				HRESULT hrQ = S_OK;
+			});
+		*/
+		
+		
+	
 
-	// Set the proper orientation for the swap chain, and generate 3D matrix transformations.
+		// Set the proper orientation for the swap chain, and generate 3D matrix transformations.
+		if (displayRotation == DXGI_MODE_ROTATION_UNSPECIFIED)
+		{
+			// Some platforms/drivers may return UNSPECIFIED (0). Map that to IDENTITY
+			// so we don't call SetRotation with an invalid value.
+			displayRotation = DXGI_MODE_ROTATION_IDENTITY;
+		}
+
 	switch (displayRotation)
 	{
 	case DXGI_MODE_ROTATION_IDENTITY:
@@ -297,10 +422,21 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		break;
 
 	default:
-		throw winrt::hresult_error(E_FAIL);
+		// Defensive fallback
+		m_orientationTransform3D = ScreenRotation::Rotation0;
+		break;
 	}
 
-	DX::ThrowIfFailed(m_SwapChain->SetRotation(displayRotation));
+	HRESULT hrRotate = m_SwapChain->SetRotation(displayRotation);
+	if (FAILED(hrRotate))
+	{
+		char buf[128];
+		sprintf_s(buf, "ERROR: IDXGISwapChain::SetRotation FAILED: %08X\n", static_cast<unsigned>(hrRotate));
+		OutputDebugStringA(buf);
+	}
+	DX::ThrowIfFailed(hrRotate);
+
+
 
 	// Create render target views of the swap chain back buffer.
 	{
@@ -316,7 +452,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			WCHAR name[32];
 			if (swprintf_s(name, L"m_renderTargets[%u]", n) > 0)
 			{
-				DX::SetName(renderTarget, name);
+				DX::SetName(renderTarget, (LPCWSTR)name);
 			}
 		}
 	}
@@ -351,6 +487,50 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 
 	// Set the 3D rendering viewport to target the entire window.
 	m_screenViewport = { 0.0f, 0.0f, m_d3dRenderTargetSize.Width, m_d3dRenderTargetSize.Height, 0.0f, 1.0f };
+}
+
+void DX::DeviceResources::HandleDeviceLost()
+{
+
+		if (m_deviceNotify)
+		{
+			m_deviceNotify->OnDeviceLost();
+		}
+
+		for (UINT n = 0; n < c_frameCount; n++)
+		{
+			m_CommandAllocators[n].get()->Reset();
+			m_RenderTargets[n] = nullptr;
+		}
+
+		m_DepthStencil = nullptr;
+		m_CommandQueue = nullptr;
+		m_Fence = nullptr;
+		m_RtvHeap = nullptr;
+		m_DsvHeap = nullptr;
+		m_SwapChain = nullptr;
+		m_D3dDevice = nullptr;
+		m_DxgiFactory = nullptr;
+
+#ifdef _DEBUG
+		{
+			winrt::com_ptr<IDXGIDebug1> dxgiDebug;
+			//ComPtr<IDXGIDebug1> dxgiDebug;
+			if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+			{
+				dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+			}
+		}
+#endif
+
+		CreateDeviceResources();
+		CreateWindowSizeDependentResources();
+
+		if (m_deviceNotify)
+		{
+			m_deviceNotify->OnDeviceRestored();
+		}
+	
 }
 
 // Determine the dimensions of the render target and whether it will be scaled down.
@@ -465,6 +645,13 @@ void DX::DeviceResources::ValidateDevice()
 void DX::DeviceResources::Present()
 {
 	HRESULT hr = m_SwapChain->Present(1, 0);
+	{
+		char buf[128];
+		sprintf_s(buf, "INFO: SwapChain::Present returned 0x%08X CurrentBackBufferIndex=%u\n",
+			static_cast<unsigned>(hr), m_SwapChain ? m_SwapChain->GetCurrentBackBufferIndex() : 0xFFFFFFFF);
+		OutputDebugStringA(buf);
+	}
+
 	if (FAILED(hr))
 	{
 		OutputDebugStringA("ERROR: IDXGISwapChain::Present FAILED: ");
@@ -484,6 +671,38 @@ void DX::DeviceResources::Present()
 		DX::ThrowIfFailed(hr);
 		MoveToNextFrame();
 	}
+}
+
+
+// Temporary test: clear backbuffer and present once (call after CreateWindowSizeDependentResources())
+void DX::DeviceResources::TestClearAndPresentOnce()
+{
+	// reset allocator & command list
+	m_CommandAllocators[m_currentFrame]->Reset();
+	winrt::com_ptr<ID3D12GraphicsCommandList> commandList;
+	DX::ThrowIfFailed(m_D3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocators[m_currentFrame].get(), nullptr, IID_PPV_ARGS(&commandList)));
+
+	// Transition RT to RENDER_TARGET
+	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(GetRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	commandList->ResourceBarrier(1, &barrier);
+
+	// Clear to bright red so it's obvious
+	D3D12_CPU_DESCRIPTOR_HANDLE rtv = GetRenderTargetView();
+	FLOAT clearColor[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+
+	// Transition back to present
+	CD3DX12_RESOURCE_BARRIER barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+	commandList->ResourceBarrier(1, &barrier2);
+
+	DX::ThrowIfFailed(commandList->Close());
+	ID3D12CommandList* lists[] = { commandList.get() };
+	m_CommandQueue->ExecuteCommandLists(1, lists);
+
+	// Present and wait so we see the result
+	OutputDebugStringA("INFO: TestClearAndPresentOnce - calling Present()\n");
+	Present();
+	WaitForGpu();
 }
 
 // Wait for pending GPU work to complete.

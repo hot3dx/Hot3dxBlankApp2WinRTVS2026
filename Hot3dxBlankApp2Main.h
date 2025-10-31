@@ -5,7 +5,7 @@
 #include "Content\Sample3DSceneRenderer.h"
 
 using namespace DX;
-using namespace winrt::Windows::Foundation;
+namespace wf = winrt::Windows::Foundation;
 using namespace winrt::Windows::UI::Core;
 //using namespace winrt::Hot3dxBlankApp2::implementation;
 
@@ -18,8 +18,12 @@ namespace winrt::Hot3dxBlankApp2
 		Hot3dxBlankApp2Main(const std::shared_ptr<DeviceResources>& deviceResources);
 		void CreateRenderers(const std::shared_ptr<DX::DeviceResources>& deviceResources);
 		void Update();
+		void StartRenderLoop();
+		void StopRenderLoop();
+		// Renders the current frame according to the current application state.
 		bool Render();
 
+		void Clear();
 		void OnWindowSizeChanged();
 		void OnSuspending();
 		void OnResuming();
@@ -30,6 +34,7 @@ namespace winrt::Hot3dxBlankApp2
 		virtual void OnDeviceLost();
 		virtual void OnDeviceRestored();
 
+		void ProcessInput();
 		// Accessors
 
 		Sample3DSceneRenderer* GetSceneRenderer() { return m_sceneRenderer; }
@@ -53,12 +58,17 @@ namespace winrt::Hot3dxBlankApp2
 
 		StepTimer GetTimer() const { return m_timer; }
 
+
+
 	private:
 
 		// Cached pointer to device resources.
 		std::shared_ptr<DeviceResources> m_deviceResources;
 		// TODO: Replace with your own content renderers.
 		Sample3DSceneRenderer* m_sceneRenderer;
+
+		winrt::Windows::Foundation::IAsyncAction m_renderLoopWorker;
+		Concurrency::critical_section m_criticalSection;
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;

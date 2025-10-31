@@ -4,17 +4,33 @@
 
 #include <winrt/base.h>
 #include <winrt/windows.system.h>
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.System.Threading.h>
 
 using namespace winrt::Hot3dxBlankApp2;
-using namespace winrt::Windows::Foundation;
+using namespace winrt;
+namespace wf = winrt::Windows::Foundation;
 using namespace winrt::Windows::System;
-//using namespace Concurrency;
+using namespace winrt::Windows::System::Threading;
+using namespace Concurrency;
 
 // The DirectX 12 Application template is documented at https://go.microsoft.com/fwlink/?LinkID=613670&clcid=0x409
 
 // Loads and initializes application assets when the application is loaded.
 Hot3dxBlankApp2Main::Hot3dxBlankApp2Main(const std::shared_ptr<DeviceResources>& deviceResources) :
-	m_deviceResources(deviceResources), m_pointerLocationX(0.0f), m_pointerLocationY(0.0f)
+	m_deviceResources(deviceResources),
+	m_pointerLocationX(0.0f),
+	m_pointerLocationY(0.0f),
+	m_visible{ false },
+	m_renderNeeded{ false },
+	m_pauseRequested{ false },
+	m_pressComplete{ false },
+	m_renderLoopWorker(nullptr),
+	m_sceneRenderer(nullptr),
+	m_timer{},
+	m_key(),
+	m_haveFocus{ false },
+	m_activationState{ false }
 {
 	// TODO: Change the timer settings if you want something other than the default variable timestep mode.
 	// e.g. for 60 FPS fixed timestep update logic, call:
@@ -42,33 +58,103 @@ void Hot3dxBlankApp2Main::CreateRenderers(const std::shared_ptr<DX::DeviceResour
 // Updates the application state once per frame.
 void Hot3dxBlankApp2Main::Update()
 {
+	//ProcessInput();
 	// Update scene objects.
 	m_timer.Tick([&]()
+		{
+			// TODO: Replace this with your app's content update functions.
+			m_sceneRenderer->Update(m_timer);
+		});
+
+	Render();
+}
+
+void Hot3dxBlankApp2Main::StartRenderLoop()
+{
+	// If the animation render loop is already running then do not start another thread.
+	if (m_renderLoopWorker && m_renderLoopWorker.Status() == wf::AsyncStatus::Started)
 	{
-		// TODO: Replace this with your app's content update functions.
-		m_sceneRenderer->Update(m_timer);
-	});
+		return;
+	}
+
+	// Create a WorkItemHandler that will be run on a background thread.
+	auto handler = WorkItemHandler{ [this](wf::IAsyncAction const& action)
+	{
+		while (action.Status() == wf::AsyncStatus::Started)
+		{
+			critical_section::scoped_lock lock(m_criticalSection);
+
+			auto commandQueue = m_deviceResources->GetCommandQueue();
+			PIXBeginEvent(commandQueue, 0, L"Update");
+			{
+				Update();
+			}
+			PIXEndEvent(commandQueue);
+
+			PIXBeginEvent(commandQueue, 0, L"Render");
+			{
+				if (m_deviceResources->m_isSwapPanelVisible == true)
+				{
+					m_sceneRenderer->Render();
+				}
+			}
+			PIXEndEvent(commandQueue);
+		}
+	} };
+
+	// Run task on a dedicated high priority background thread.
+	m_renderLoopWorker = ThreadPool::RunAsync(handler, WorkItemPriority::High, WorkItemOptions::TimeSliced);
+}
+
+void Hot3dxBlankApp2Main::StopRenderLoop()
+{
+	if (m_renderLoopWorker)
+	{
+		try
+		{
+			m_renderLoopWorker.Cancel();
+		}
+		catch (...) {}
+	}
 }
 
 // Renders the current frame according to the current application state.
 // Returns true if the frame was rendered and is ready to be displayed.
 bool Hot3dxBlankApp2Main::Render()
 {
-	// Don't try to render anything before the first Update.
-	if (m_timer.GetFrameCount() == 0)
+
+	// Call scene renderer first
+	bool sceneRendered = false;
+	if (m_sceneRenderer)
 	{
-		return false;
+		sceneRendered = m_sceneRenderer->Render();
+		OutputDebugStringA(sceneRendered ? "INFO: SceneRenderer::Render returned TRUE\n" : "INFO: SceneRenderer::Render returned FALSE\n");
 	}
 
-	// Render the scene objects.
-	// TODO: Replace this with your app's content rendering functions.
-	return m_sceneRenderer->Render();
+	// Make sure we actually present the swap chain
+	if (m_deviceResources && sceneRendered)
+	{
+		OutputDebugStringA("INFO: Calling DeviceResources::Present()\n");
+		m_deviceResources->Present();
+	}
+	else
+	{
+		OutputDebugStringA("WARN: Skipping Present (no deviceResources or nothing rendered)\n");
+	}
+
+	return sceneRendered;
+}
+
+void Hot3dxBlankApp2::Hot3dxBlankApp2Main::Clear()
+{
+	m_sceneRenderer->Clear();
 }
 
 // Updates application state when the window's size changes (e.g. device orientation change)
 void Hot3dxBlankApp2Main::OnWindowSizeChanged()
 {
 	// TODO: Replace this with the size-dependent initialization of your app's content.
+	if (m_sceneRenderer->GetLoadingComplete() == false)return;
 	m_sceneRenderer->CreateWindowSizeDependentResources();
 }
 
@@ -147,5 +233,11 @@ void Hot3dxBlankApp2Main::KeyUp(winrt::Windows::System::VirtualKey const& key)
 	default:
 		break;
 	};
+	m_sceneRenderer->TrackingUpdate(m_pointerLocationX, m_pointerLocationY);
+}
+
+void Hot3dxBlankApp2::Hot3dxBlankApp2Main::ProcessInput()
+{
+	// TODO: Add per frame input handling here.
 	m_sceneRenderer->TrackingUpdate(m_pointerLocationX, m_pointerLocationY);
 }

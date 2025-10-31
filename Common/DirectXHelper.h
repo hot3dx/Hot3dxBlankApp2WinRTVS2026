@@ -14,7 +14,7 @@
 
 using namespace DirectX;
 //using namespace Microsoft::WRL;
-using namespace winrt::Windows::Foundation;
+namespace wf = winrt::Windows::Foundation;
 using namespace winrt::Windows::Graphics::Display;
 using namespace winrt::Windows::UI::Core;
 using namespace winrt::Windows::UI::Xaml::Controls;

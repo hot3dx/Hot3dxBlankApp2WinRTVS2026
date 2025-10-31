@@ -23,7 +23,7 @@ using namespace winrt::Hot3dxBlankApp2;
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
-using namespace winrt::Windows::Foundation;
+namespace wf = winrt::Windows::Foundation;
 using namespace winrt::Windows::Graphics::Display;
 using namespace winrt::Windows::UI::Core;
 using namespace winrt::Windows::UI::Xaml::Controls;
@@ -60,7 +60,17 @@ Sample3DSceneRenderer::~Sample3DSceneRenderer()
 winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDependentResources()
 {
 	auto d3dDevice = m_deviceResources->GetD3DDevice();
-	
+	// Optional: before creating device resources, log whether device is valid
+	{
+		if (!d3dDevice)
+		{
+			OutputDebugStringA("ERROR: D3D device is null in CreateDeviceDependentResources()\n");
+		}
+		else
+		{
+			OutputDebugStringA("INFO: D3D device valid in CreateDeviceDependentResources()\n");
+		}
+	}
 	// Create a root signature with a single constant buffer slot.
 	{
 		CD3DX12_DESCRIPTOR_RANGE range;
@@ -114,7 +124,11 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		m_vertexShader.at(i) = static_cast<BYTE>(vertData.at(static_cast<uint32_t>(i)));
 	}
-	
+	{
+		char msg[256];
+		sprintf_s(msg, "INFO: Loaded vertex shader bytes=%u\n", static_cast<unsigned>(bufferV.Length()));
+		OutputDebugStringA(msg);
+	}
 	winrt::Windows::Storage::Streams::IBuffer bufferP = co_await DX::ReadMyDataAsync(shaderP);
 	winrt::com_array<uint8_t> pixelData(bufferP.Length());
 	winrt::Windows::Storage::Streams::DataReader::FromBuffer(bufferP).ReadBytes(pixelData);
@@ -125,7 +139,11 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		m_pixelShader.at(i) = static_cast<BYTE>(pixelData.at(static_cast<uint32_t>(i)));
 	}
-	
+	{
+		char msg[256];
+		sprintf_s(msg, "INFO: Loaded pixel shader bytes=%u\n", static_cast<unsigned>(bufferP.Length()));
+		OutputDebugStringA(msg);
+	}
 	// Create the pipeline state once the shaders are loaded.
 	//auto createPipelineStateTask = (createPSTask && createVSTask).then([this]() {
 
@@ -191,7 +209,7 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 			&defaultHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&vertexBufferDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST,
+			D3D12_RESOURCE_STATE_COMMON, // create in COMMON to avoid creation-time state ignored warning
 			nullptr,
 			IID_PPV_ARGS(&m_vertexBuffer)));
 
@@ -204,11 +222,16 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 			nullptr,
 			IID_PPV_ARGS(&vertexBufferUpload)));
 
-        //NAME_D3D12_OBJECT(m_vertexBuffer);
 		m_vertexBuffer->SetName(L"vertexBuffer");
 
 		// Upload the vertex buffer to the GPU.
 		{
+			// Transition default buffer from COMMON -> COPY_DEST before uploading
+			CD3DX12_RESOURCE_BARRIER beforeCopy =
+				CD3DX12_RESOURCE_BARRIER::Transition(m_vertexBuffer.get(),
+					D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+			m_commandList->ResourceBarrier(1, &beforeCopy);
+
 			D3D12_SUBRESOURCE_DATA vertexData = {};
 			vertexData.pData = reinterpret_cast<BYTE*>(cubeVertices);
 			vertexData.RowPitch = vertexBufferSize;
@@ -216,8 +239,10 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 
 			UpdateSubresources(m_commandList.get(), m_vertexBuffer.get(), vertexBufferUpload.get(), 0, 0, 1, &vertexData);
 
+			// Then transition from COPY_DEST -> VERTEX_AND_CONSTANT_BUFFER for use by IA
 			CD3DX12_RESOURCE_BARRIER vertexBufferResourceBarrier =
-				CD3DX12_RESOURCE_BARRIER::Transition(m_vertexBuffer.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+				CD3DX12_RESOURCE_BARRIER::Transition(m_vertexBuffer.get(),
+					D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 			m_commandList->ResourceBarrier(1, &vertexBufferResourceBarrier);
 		}
 
@@ -256,7 +281,7 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 			&defaultHeapProperties,
 			D3D12_HEAP_FLAG_NONE,
 			&indexBufferDesc,
-			D3D12_RESOURCE_STATE_COPY_DEST,
+			D3D12_RESOURCE_STATE_COMMON, // create in COMMON to avoid creation-time state ignored warning
 			nullptr,
 			IID_PPV_ARGS(&m_indexBuffer)));
 
@@ -268,11 +293,16 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 			nullptr,
 			IID_PPV_ARGS(&indexBufferUpload)));
 
-		//NAME_D3D12_OBJECT(m_indexBuffer);
 		m_indexBuffer->SetName(L"indexBuffer");
 
 		// Upload the index buffer to the GPU.
 		{
+			// Transition default buffer from COMMON -> COPY_DEST before uploading
+			CD3DX12_RESOURCE_BARRIER beforeCopy =
+				CD3DX12_RESOURCE_BARRIER::Transition(m_indexBuffer.get(),
+					D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+			m_commandList->ResourceBarrier(1, &beforeCopy);
+
 			D3D12_SUBRESOURCE_DATA indexData = {};
 			indexData.pData = reinterpret_cast<BYTE*>(cubeIndices);
 			indexData.RowPitch = indexBufferSize;
@@ -281,7 +311,8 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 			UpdateSubresources(m_commandList.get(), m_indexBuffer.get(), indexBufferUpload.get(), 0, 0, 1, &indexData);
 
 			CD3DX12_RESOURCE_BARRIER indexBufferResourceBarrier =
-				CD3DX12_RESOURCE_BARRIER::Transition(m_indexBuffer.get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+				CD3DX12_RESOURCE_BARRIER::Transition(m_indexBuffer.get(),
+					D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER);
 			m_commandList->ResourceBarrier(1, &indexBufferResourceBarrier);
 		}
 
@@ -361,7 +392,7 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 // Initializes view parameters when the window size changes.
 void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 {
-	Size outputSize = m_deviceResources->GetOutputSize();
+	wf::Size outputSize = m_deviceResources->GetOutputSize();
 	float aspectRatio = outputSize.Width / outputSize.Height;
 	float fovAngleY = 70.0f * XM_PI / 180.0f;
 
@@ -615,8 +646,14 @@ bool Sample3DSceneRenderer::Render()
 	// Loading is asynchronous. Only draw geometry after it's loaded.
 	if (!m_loadingComplete)
 	{
+		//OutputDebugString(L"\n Entered !m_loadingComplete m_sceneRenderer->Render()\n");
 		return false;
 	}
+	//OutputDebugString(L"\n Entered m_sceneRenderer->Render()\n");
+
+	// Ensure previous GPU work that used this allocator has finished before resetting it.
+	// This prevents the COMMAND_ALLOCATOR_SYNC error.
+	m_deviceResources->WaitForGpu();
 
 	DX::ThrowIfFailed(m_deviceResources->GetCommandAllocator()->Reset());
 
@@ -672,3 +709,24 @@ bool Sample3DSceneRenderer::Render()
 
 	return true;
 }
+
+void winrt::Hot3dxBlankApp2::Sample3DSceneRenderer::Clear()
+{
+	PIXBeginEvent(m_commandList.get(), PIX_COLOR_DEFAULT, L"Clear");
+
+	// Record drawing commands.
+	D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView = m_deviceResources->GetRenderTargetView();
+	D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_deviceResources->GetDepthStencilView();
+	m_commandList->ClearRenderTargetView(renderTargetView, DirectX::Colors::CornflowerBlue, 0, nullptr);
+	m_commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+	m_commandList->OMSetRenderTargets(1, &renderTargetView, false, &depthStencilView);
+
+	// Set the viewport and scissor rectangle.
+	D3D12_VIEWPORT viewport = m_deviceResources->GetScreenViewport();
+	m_commandList->RSSetViewports(1, &viewport);
+	m_commandList->RSSetScissorRects(1, &m_scissorRect);
+
+	PIXEndEvent(m_commandList.get());
+}
+
