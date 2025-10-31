@@ -26,7 +26,7 @@ Hot3dxBlankApp2Main::Hot3dxBlankApp2Main(const std::shared_ptr<DeviceResources>&
 	m_deviceResources->RegisterDeviceNotify(this);
 
 	// TODO: Replace this with your app's content initialization.
-	SetSceneRenderer();
+	//SetSceneRenderer();
 	
 }
 
@@ -57,11 +57,13 @@ bool Hot3dxBlankApp2Main::Render()
 	// Don't try to render anything before the first Update.
 	if (m_timer.GetFrameCount() == 0)
 	{
+		OutputDebugString(L"\nm_timer.GetFrameCount() = 0\n");
 		return false;
 	}
 
 	// Render the scene objects.
 	// TODO: Replace this with your app's content rendering functions.
+	OutputDebugString(L"\n to m_sceneRenderer->Render()\n");
 	return m_sceneRenderer->Render();
 }
 

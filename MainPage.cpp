@@ -10,40 +10,69 @@ using namespace winrt::Windows::UI::Xaml;
 using namespace winrt::Windows::UI::Xaml::Controls;
 using namespace winrt::Hot3dxBlankApp2::implementation;
 
+MainPage* MainPage::Current = nullptr;
 namespace winrt::Hot3dxBlankApp2::implementation
 {
     
     MainPage::MainPage()
     {
-        // create DeviceResources first
+        // Initialize XAML parts first (must be called before manipulating Content() / named controls)
+        InitializeComponent();
+
+        MainPage::Current = this;
+
+        // create DeviceResources
         m_deviceResources = std::make_shared<DeviceResources>();
 
-        // create the SwapChainPanel instance (member) and hook Loaded
-        m_swapChainPanel = swapChainPanel();
-        m_swapChainPanel.Loaded({this, &MainPage::OnSwapChainPanelLoaded});
+        //m_deviceResources->SetSwapChainPanel(swapChainPanel(), );
+        // instantiate the SwapChainPanel before using it
+        if (!m_swapChainPanel)
+        {
+            m_swapChainPanel = swapChainPanel();
+        }
 
-        // add the panel to the visual tree
-        Content(m_swapChainPanel);
+        // attach Loaded handler
+        m_swapChainPanel.Loaded({ this, &MainPage::OnSwapChainPanelLoaded });
+        //OnSwapChainPanelLoaded2();
+        
+        // Put the panel into the page's visual tree.
+       // Wrap in try/catch to capture any HRESULT and print it.
+        try
+        {
+            Content(m_swapChainPanel);
+        }
+        catch (winrt::hresult_error const& e)
+        {
+            char buf[256];
+            sprintf_s(buf, "ERROR: Setting Content failed: 0x%08X - %ls\n", static_cast<unsigned>(e.code()), e.message().c_str());
+            OutputDebugStringA(buf);
+            throw; // optionally rethrow or handle gracefully
+        }
 
         // mark window invisible until ready
         m_windowVisible = false;
     }
-
-    void MainPage::OnSwapChainPanelLoaded(winrt::Windows::Foundation::IInspectable const& /*sender*/, winrt::Windows::UI::Xaml::RoutedEventArgs const& /*args*/)
+ 
+    void MainPage::OnSwapChainPanelLoaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& args)
     {
+        OutputDebugString(L"/nEntered OnSwapChainPanelLoaded/n");
+        auto panel = sender.as<winrt::Windows::UI::Xaml::Controls::SwapChainPanel>();
+        // panel == m_swapChainPanel
+        (void)args; // suppress unused warning
+
         // safe to call interop / size dependent initialization now
         auto window = Window::Current();
         m_deviceResources->SetWindow(window.CoreWindow());
 
         // Give DeviceResources the panel (it should call SetSwapChain / ISwapChainPanelNative inside)
-        m_deviceResources->SetSwapChainPanel(&m_swapChainPanel, window.CoreWindow());
-
+        m_deviceResources->SetSwapChainPanel(m_swapChainPanel, window.CoreWindow());
+        
         // create/render only after swapchain panel is attached
         m_main = std::make_unique<Hot3dxBlankApp2Main>(m_deviceResources);
         m_main->CreateRenderers(m_deviceResources);
 
         m_windowVisible = true;
-
+        OutputDebugString(L"/nExited OnSwapChainPanelLoaded and off too m_main Render/n");
         // Do one frame (or start your render loop)
         m_main->Render();
     }
