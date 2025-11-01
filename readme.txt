@@ -22,4 +22,4 @@ Learn more about C++/WinRT here:
 http://aka.ms/cppwinrt/
 ========================================================================
 
-![Working Program Screenshot](Halloween10_31_2025__4_49_pm.png)
+![Working Program Screenshot].(Halloween10_31_2025__4_49_pm.png).
