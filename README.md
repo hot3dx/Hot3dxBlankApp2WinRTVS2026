@@ -36,9 +36,9 @@ http://aka.ms/cppwinrt/
 Known Issues:
 - VS 2026 will not install the necessary NuGet Packages by default.
   You may need to manually install the following NuGet packages:
-  - <package id="Microsoft.Windows.CppWinRT" version="2.0.250303.1" targetFramework="native" />
-  - <package id="Microsoft.Web.WebView" version="2.1.0.2849.39" targetFramework="native" />
-  - <package id="WinPixEventRuntime" version="1.0.240308001" targetFramework="native" />
+    - Microsoft.Windows.CppWinRT" version="2.0.250303.1" 
+    - Microsoft.Web.WebView" version="2.1.0.2849.39" 
+    - WinPixEventRuntime" version="1.0.240308001" 
   And place the packages folder in the solution drive directory. For Example: C:\Packages or D:\Packages
 - Calling forth necessary packages can be done in the Visual Studio 2022 version of this program.
   at https://github.com/Hot3dx/Hot3dxBlankApp2
