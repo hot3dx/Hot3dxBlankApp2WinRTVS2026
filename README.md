@@ -32,3 +32,20 @@ Learn more about C++/WinRT here:
 http://aka.ms/cppwinrt/
 ========================================================================
 ![Screenshot of Working Program Screenshot](Halloween10_31_2025__4_49_pm.png)
+
+Known Issues:
+- VS 2026 will not install the necessary NuGet Packages by default.
+  You may need to manually install the following NuGet packages:
+  - <package id="Microsoft.Windows.CppWinRT" version="2.0.250303.1" targetFramework="native" />
+  - <package id="Microsoft.Web.WebView" version="2.1.0.2849.39" targetFramework="native" />
+  - <package id="WinPixEventRuntime" version="1.0.240308001" targetFramework="native" />
+  And place the packages folder in the solution drive directory. For Example: C:\Packages or D:\Packages
+- Calling forth necessary packages can be done in the Visual Studio 2022 version of this program.
+  at https://github.com/Hot3dx/Hot3dxBlankApp2
+
+- Make sure to install the "C++ (v142) and (v143) and (v145 for VS2026) Universal Windows Platform tools" 
+  workload in Visual Studio Installer.
+- Ensure that your project is set to use the correct Windows SDK version.
+- If you encounter build errors related to missing headers or libraries, 
+  verify that the C++/WinRT extension is installed in Visual Studio.
+- If you experience issues with XAML designer or IntelliSense, try restarting Visual Studio or rebuilding the project.
