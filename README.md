@@ -37,7 +37,7 @@ Known Issues:
 - VS 2026 will not install the necessary NuGet Packages by default.
   You may need to manually install the following NuGet packages:
     - Microsoft.Windows.CppWinRT" version="2.0.250303.1" 
-    - Microsoft.Web.WebView" version="2.1.0.2849.39" 
+    - Microsoft.Web.WebView2" version="1.0.3595.46" 
     - WinPixEventRuntime" version="1.0.240308001" 
   And place the packages folder in the solution drive directory. For Example: C:\Packages or D:\Packages
 - Calling forth necessary packages can be done in the Visual Studio 2022 version of this program.
