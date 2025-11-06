@@ -84,16 +84,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView.2.1.0.2849.39;$(IncludePath)</IncludePath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.250303.1;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView.2.1.0.2849.39;$(IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView.2.1.0.2849.39;$(IncludePath)</IncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -124,6 +114,9 @@
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">d3d12.lib;d3d11.lib;dxgi.lib;dxguid.lib;d2d1.lib;windowscodecs.lib; dwrite.lib;xaudio2.lib;xinput.lib;mfcore.lib;mfplat.lib;mfreadwrite.lib;mfuuid.lib;mincore.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <FxCompile>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
+    </FxCompile>
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">d3d12.lib;d3d11.lib;dxgi.lib;dxguid.lib;d2d1.lib;windowscodecs.lib; dwrite.lib;xaudio2.lib;xinput.lib;mfcore.lib;mfplat.lib;mfreadwrite.lib;mfuuid.lib;mincore.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -142,8 +135,27 @@
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">d3d12.lib;d3d11.lib;dxgi.lib;dxguid.lib;d2d1.lib;windowscodecs.lib; dwrite.lib;xaudio2.lib;xinput.lib;mfcore.lib;mfplat.lib;mfreadwrite.lib;mfuuid.lib;mincore.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">d3d12.lib;d3d11.lib;dxgi.lib;dxguid.lib;d2d1.lib;windowscodecs.lib; dwrite.lib;xaudio2.lib;xinput.lib;mfcore.lib;mfplat.lib;mfreadwrite.lib;mfuuid.lib;mincore.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <FxCompile>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DisableOptimizations>
+    </FxCompile>
+    <FxCompile>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EnableDebuggingInformation>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
+    </FxCompile>
+    <FxCompile>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DisableOptimizations>
+    </FxCompile>
+    <FxCompile>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Common\d3dx12.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
     <ClInclude Include="Common\DirectXIUnknowns.h" />
@@ -167,6 +179,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </None>
+    <None Include="README.md" />
     <Page Include="MainPage.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -177,7 +190,6 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Assets\Halloween10_31_2025__4_49_pm.png" />
     <Image Include="Assets\LockScreenLogo.scale-200.png" />
     <Image Include="Assets\MakerC1.ico" />
     <Image Include="Assets\splash-windows-sdk.scale-100.png" />
@@ -242,36 +254,33 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="PropertySheet.props" />
-    <Text Include="readme.md">
-      <DeploymentContent>false</DeploymentContent>
-    </Text>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DisableOptimizations>
-      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EnableDebuggingInformation>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
       <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DisableOptimizations>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DisableOptimizations>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DisableOptimizations>
-      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
       <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DisableOptimizations>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EnableDebuggingInformation>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.1</ShaderModel>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DisableOptimizations>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

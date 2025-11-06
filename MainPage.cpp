@@ -1,4 +1,5 @@
-﻿#include "pch.h"
+﻿﻿
+#include "pch.h"
 #include "MainPage.h"
 #include "MainPage.g.cpp"
 
@@ -13,7 +14,7 @@ using namespace winrt::Hot3dxBlankApp2::implementation;
 MainPage* MainPage::Current = nullptr;
 namespace winrt::Hot3dxBlankApp2::implementation
 {
-    
+
     MainPage::MainPage()
     {
         // Initialize XAML parts first (must be called before manipulating Content() / named controls)
@@ -34,7 +35,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
         // attach Loaded handler
         m_swapChainPanel.Loaded({ this, &MainPage::OnSwapChainPanelLoaded });
         //OnSwapChainPanelLoaded2();
-        
+
         // Put the panel into the page's visual tree.
        // Wrap in try/catch to capture any HRESULT and print it.
         try
@@ -52,29 +53,64 @@ namespace winrt::Hot3dxBlankApp2::implementation
         // mark window invisible until ready
         m_windowVisible = false;
     }
- 
-    void MainPage::OnSwapChainPanelLoaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& args)
+
+    void MainPage::OnSwapChainPanelSizeChanged(winrt::Windows::Foundation::IInspectable const& /*sender*/,
+        winrt::Windows::UI::Xaml::SizeChangedEventArgs const& args)
     {
-        OutputDebugString(L"/nEntered OnSwapChainPanelLoaded/n");
-        auto panel = sender.as<winrt::Windows::UI::Xaml::Controls::SwapChainPanel>();
-        // panel == m_swapChainPanel
-        (void)args; // suppress unused warning
+        auto newSize = args.NewSize();
+        float aw = static_cast<float>(newSize.Width);
+        float ah = static_cast<float>(newSize.Height);
+        if (aw <= 0.0f || ah <= 0.0f) return;
 
-        // safe to call interop / size dependent initialization now
-        auto window = Window::Current();
-        m_deviceResources->SetWindow(window.CoreWindow());
+        // unregister handler if you only want first-time init
+        m_swapChainPanel.SizeChanged(nullptr);
 
-        // Give DeviceResources the panel (it should call SetSwapChain / ISwapChainPanelNative inside)
-        m_deviceResources->SetSwapChainPanel(m_swapChainPanel, window.CoreWindow());
-        
-        // create/render only after swapchain panel is attached
+        m_deviceResources->SetLogicalSize(winrt::Windows::Foundation::Size(aw, ah));
+        m_deviceResources->SetSwapChainPanel(m_swapChainPanel, Window::Current().CoreWindow());
+        m_deviceResources->CreateWindowSizeDependentResources();
+
         m_main = std::make_unique<Hot3dxBlankApp2Main>(m_deviceResources);
         m_main->CreateRenderers(m_deviceResources);
-
         m_windowVisible = true;
-        OutputDebugString(L"/nExited OnSwapChainPanelLoaded and off too m_main Render/n");
-        // Do one frame (or start your render loop)
-        m_main->Render();
+        m_main->OnWindowSizeChanged();
+    }
+
+    void MainPage::OnSwapChainPanelLoaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& args)
+    {
+        auto panel = m_swapChainPanel; // or sender.as<SwapChainPanel>()
+        if (!panel) return;
+
+        // CoreWindow for SetWindow
+        auto window = Window::Current();
+        auto coreWindow = window.CoreWindow();
+
+        // 1) give DeviceResources the CoreWindow
+        m_deviceResources->SetWindow(coreWindow);
+
+        // 2) set logical size from panel measured DIPs (preferred)
+        float aw = static_cast<float>(panel.ActualWidth());
+        float ah = static_cast<float>(panel.ActualHeight());
+        if (aw > 0 && ah > 0)
+        {
+            m_deviceResources->SetLogicalSize(winrt::Windows::Foundation::Size(aw, ah));
+        }
+        else
+        {
+            // fallback to CoreWindow bounds if necessary
+            m_deviceResources->SetLogicalSize(winrt::Windows::Foundation::Size(coreWindow.Bounds().Width, coreWindow.Bounds().Height));
+        }
+
+        // 3) give DeviceResources the SwapChainPanel (attach swapchain to panel via ISwapChainPanelNative)
+        m_deviceResources->SetSwapChainPanel(panel, coreWindow);
+
+        // 4) create/resize swap chain and render targets
+        m_deviceResources->CreateWindowSizeDependentResources();
+
+        // 5) set up renderers and first frame
+        m_main = std::make_unique<Hot3dxBlankApp2Main>(m_deviceResources);
+        m_main->CreateRenderers(m_deviceResources);
+        m_windowVisible = true;
+        m_main->StartRenderLoop();
     }
 
     int32_t MainPage::MyProperty()
@@ -208,12 +244,12 @@ namespace winrt::Hot3dxBlankApp2::implementation
     void MainPage::OnPointerCaptureLost(winrt::Windows::UI::Xaml::Input::PointerRoutedEventArgs const e)
     {
         //if (sender) { 
-            if (e) {}
+        if (e) {}
         //}
     }
     void MainPage::OnKeyDown(Windows::UI::Xaml::Input::KeyRoutedEventArgs const& args)
     {
-        if (args) { }
+        if (args) {}
     }
     void MainPage::OnKeyUp(Windows::UI::Xaml::Input::KeyRoutedEventArgs const& args)
     {

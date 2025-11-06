@@ -50,6 +50,8 @@ namespace winrt::Hot3dxBlankApp2::implementation
     {
         MainPage();
 
+        void OnSwapChainPanelSizeChanged(winrt::Windows::Foundation::IInspectable const&, winrt::Windows::UI::Xaml::SizeChangedEventArgs const& args);
+
         static MainPage* Current;
         int32_t MyProperty();
         void MyProperty(int32_t value);

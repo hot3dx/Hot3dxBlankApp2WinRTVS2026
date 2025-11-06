@@ -43,7 +43,7 @@ Hot3dxBlankApp2Main::Hot3dxBlankApp2Main(const std::shared_ptr<DeviceResources>&
 
 	// TODO: Replace this with your app's content initialization.
 	//SetSceneRenderer();
-	
+
 }
 
 // Creates and initializes the renderers.

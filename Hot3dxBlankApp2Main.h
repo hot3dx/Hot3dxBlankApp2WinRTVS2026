@@ -72,7 +72,7 @@ namespace winrt::Hot3dxBlankApp2
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;
-		
+
 		///////////////////////////////////////////////////
 		bool                                                m_pauseRequested;
 		bool                                                m_pressComplete;

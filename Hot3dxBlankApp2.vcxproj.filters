@@ -43,9 +43,6 @@
     <ClInclude Include="Content\ShaderStructures.h">
       <Filter>Content</Filter>
     </ClInclude>
-    <ClInclude Include="Common\DirectXIUnknowns.h">
-      <Filter>Common</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
@@ -153,9 +150,6 @@
     <Image Include="Assets\windowslogo.dds">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\Halloween10_31_2025__4_49_pm.png">
-      <Filter>Assets</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -180,7 +174,7 @@
     <None Include="Hot3dxStyles.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="readme.md" />
+    <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
