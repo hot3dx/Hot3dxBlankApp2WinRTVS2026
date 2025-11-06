@@ -93,7 +93,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
                     if (auto t = weakThis.get())
                     {
-                        ::winrt::get_self<D>(t)->Button_Click(p0, p1);
+                        ::winrt::get_self<D>(t)->ToggleButton_Click(p0, p1);
                     }
                 });
             }
