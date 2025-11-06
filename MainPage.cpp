@@ -53,63 +53,28 @@ namespace winrt::Hot3dxBlankApp2::implementation
         m_windowVisible = false;
     }
  
-    void MainPage::OnSwapChainPanelSizeChanged(winrt::Windows::Foundation::IInspectable const& /*sender*/,
-        winrt::Windows::UI::Xaml::SizeChangedEventArgs const& args)
-    {
-        auto newSize = args.NewSize();
-        float aw = static_cast<float>(newSize.Width);
-        float ah = static_cast<float>(newSize.Height);
-        if (aw <= 0.0f || ah <= 0.0f) return;
-
-        // unregister handler if you only want first-time init
-        m_swapChainPanel.SizeChanged(nullptr);
-
-        m_deviceResources->SetLogicalSize(winrt::Windows::Foundation::Size(aw, ah));
-        m_deviceResources->SetSwapChainPanel(m_swapChainPanel, Window::Current().CoreWindow());
-        m_deviceResources->CreateWindowSizeDependentResources();
-
-        m_main = std::make_unique<Hot3dxBlankApp2Main>(m_deviceResources);
-        m_main->CreateRenderers(m_deviceResources);
-        m_windowVisible = true;
-        m_main->OnWindowSizeChanged();
-    }
-
     void MainPage::OnSwapChainPanelLoaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& args)
     {
-        auto panel = m_swapChainPanel; // or sender.as<SwapChainPanel>()
-        if (!panel) return;
+        OutputDebugString(L"/nEntered OnSwapChainPanelLoaded/n");
+        auto panel = sender.as<winrt::Windows::UI::Xaml::Controls::SwapChainPanel>();
+        // panel == m_swapChainPanel
+        (void)args; // suppress unused warning
 
-        // CoreWindow for SetWindow
+        // safe to call interop / size dependent initialization now
         auto window = Window::Current();
-        auto coreWindow = window.CoreWindow();
+        m_deviceResources->SetWindow(window.CoreWindow());
 
-        // 1) give DeviceResources the CoreWindow
-        m_deviceResources->SetWindow(coreWindow);
-
-        // 2) set logical size from panel measured DIPs (preferred)
-        float aw = static_cast<float>(panel.ActualWidth());
-        float ah = static_cast<float>(panel.ActualHeight());
-        if (aw > 0 && ah > 0)
-        {
-            m_deviceResources->SetLogicalSize(winrt::Windows::Foundation::Size(aw, ah));
-        }
-        else
-        {
-            // fallback to CoreWindow bounds if necessary
-            m_deviceResources->SetLogicalSize(winrt::Windows::Foundation::Size(coreWindow.Bounds().Width, coreWindow.Bounds().Height));
-        }
-
-        // 3) give DeviceResources the SwapChainPanel (attach swapchain to panel via ISwapChainPanelNative)
-        m_deviceResources->SetSwapChainPanel(panel, coreWindow);
-
-        // 4) create/resize swap chain and render targets
-        m_deviceResources->CreateWindowSizeDependentResources();
-
-        // 5) set up renderers and first frame
+        // Give DeviceResources the panel (it should call SetSwapChain / ISwapChainPanelNative inside)
+        m_deviceResources->SetSwapChainPanel(m_swapChainPanel, window.CoreWindow());
+        
+        // create/render only after swapchain panel is attached
         m_main = std::make_unique<Hot3dxBlankApp2Main>(m_deviceResources);
         m_main->CreateRenderers(m_deviceResources);
+
         m_windowVisible = true;
-        m_main->StartRenderLoop();
+        OutputDebugString(L"/nExited OnSwapChainPanelLoaded and off too m_main Render/n");
+        // Do one frame (or start your render loop)
+        m_main->Render();
     }
 
     int32_t MainPage::MyProperty()
@@ -161,20 +126,46 @@ namespace winrt::Hot3dxBlankApp2::implementation
 
     void MainPage::Footer_Click(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args)
     {
-		auto button = sender.as<Windows::UI::Xaml::Controls::Button>();
-		button.Content(box_value(L"Clicked"));
-		auto originalSource = args.OriginalSource();
-
-        //auto uri = Windows::Foundation::Uri(L"
+        try
+        {
+            auto uri = winrt::Windows::Foundation::Uri{ L"http://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026" };
+            auto op = winrt::Windows::System::Launcher::LaunchUriAsync(uri);
+            // Non-blocking: handle completion asynchronously
+            op.Completed([](winrt::Windows::Foundation::IAsyncOperation<bool> const& asyncOp,
+                winrt::Windows::Foundation::AsyncStatus const& status)
+                {
+                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
+                    {
+                        bool success = asyncOp.GetResults();
+                        // Optionally log success/failure. Avoid blocking here.
+                    }
+                });
+        }
+        catch (...) // keep failures graceful for certification
+        {
+        }
     }
 
     void MainPage::Footer_Click2(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args)
     {
-        auto button = sender.as<Windows::UI::Xaml::Controls::Button>();
-        button.Content(box_value(L"Clicked"));
-        auto originalSource = args.OriginalSource();
-
-        //auto uri = Windows::Foundation::Uri(L"
+        try
+        {
+            auto uri = winrt::Windows::Foundation::Uri{ L"http://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/Privacy.md" };
+            auto op = winrt::Windows::System::Launcher::LaunchUriAsync(uri);
+            // Non-blocking: handle completion asynchronously
+            op.Completed([](winrt::Windows::Foundation::IAsyncOperation<bool> const& asyncOp,
+                winrt::Windows::Foundation::AsyncStatus const& status)
+                {
+                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
+                    {
+                        bool success = asyncOp.GetResults();
+                        // Optionally log success/failure. Avoid blocking here.
+                    }
+                });
+        }
+        catch (...) // keep failures graceful for certification
+        {
+        }
     }
 
 
@@ -227,5 +218,10 @@ namespace winrt::Hot3dxBlankApp2::implementation
     void MainPage::OnKeyUp(Windows::UI::Xaml::Input::KeyRoutedEventArgs const& args)
     {
         if (args) {}
+    }
+
+    void winrt::Hot3dxBlankApp2::implementation::MainPage::ToggleButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
+    {
+        Splitter().IsPaneOpen(!Splitter().IsPaneOpen());
     }
 }
