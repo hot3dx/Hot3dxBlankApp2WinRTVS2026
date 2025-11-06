@@ -186,7 +186,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
     {
         try
         {
-            auto uri = winrt::Windows::Foundation::Uri{ L"http://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/Privacy.md" };
+            auto uri = winrt::Windows::Foundation::Uri{ L"https://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/blob/main/PrivacyPolicy.md" };
             auto op = winrt::Windows::System::Launcher::LaunchUriAsync(uri);
             // Non-blocking: handle completion asynchronously
             op.Completed([](winrt::Windows::Foundation::IAsyncOperation<bool> const& asyncOp,
