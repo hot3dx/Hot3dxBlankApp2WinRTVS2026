@@ -109,7 +109,7 @@ void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::
 	char msg[256];
 	sprintf_s(msg, "INFO: SwapChainPanel Loaded ActualWidth=%.2f ActualHeight=%.2f CompScaleX=%.2f CompScaleY=%.2f\n",
 		aw, ah, csx, csy);
-	OutputDebugStringA(msg);
+	//OutputDebugStringA(msg);
 
 	m_swapChainPanel = panel;
 
@@ -140,7 +140,7 @@ void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::
 			DX::ThrowIfFailed(hr);
 
 			sprintf_s(msg, "INFO: Attached swap chain to SwapChainPanel successfully.\n");
-			OutputDebugStringA(msg);
+			//OutputDebugStringA(msg);
 
 			TestClearAndPresentOnce();
 
@@ -292,14 +292,14 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			char buf[256];
 			sprintf_s(buf, "INFO: Panel composition scale applied: csx=%.2f csy=%.2f -> pixel W=%u H=%u (pre=%u,%u)\n",
 				csx, csy, scaledWidth, scaledHeight, backBufferWidth, backBufferHeight);
-			OutputDebugStringA(buf);
+			//OutputDebugStringA(buf);
 
 			backBufferWidth = scaledWidth;
 			backBufferHeight = scaledHeight;
 		}
 		catch (...)
 		{
-			OutputDebugStringA("WARN: Failed to read CompositionScale from SwapChainPanel; using default sizes\n");
+			//OutputDebugStringA("WARN: Failed to read CompositionScale from SwapChainPanel; using default sizes\n");
 		}
 	}
 
@@ -355,11 +355,11 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 					char buf[256];
 					sprintf_s(buf, "INFO: SwapChainDesc Width=%u Height=%u Buffers=%u Format=%u SwapEffect=%u\n",
 						desc.Width, desc.Height, desc.BufferCount, desc.Format, desc.SwapEffect);
-					OutputDebugStringA(buf);
+					//OutputDebugStringA(buf);
 				}
 				else
 				{
-					OutputDebugStringA("WARN: Failed to get SwapChainDesc1\n");
+					//OutputDebugStringA("WARN: Failed to get SwapChainDesc1\n");
 				}
 
 				// Confirm GetBuffer / RTV creation
@@ -369,12 +369,12 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 					HRESULT hr = m_SwapChain->GetBuffer(n, IID_PPV_ARGS(&buf));
 					char bufMsg[128];
 					sprintf_s(bufMsg, "INFO: GetBuffer(%u) hr=%08X ptr=%p\n", n, static_cast<unsigned>(hr), static_cast<void*>(buf.get()));
-					OutputDebugStringA(bufMsg);
+					//OutputDebugStringA(bufMsg);
 				}
 			}
 			else
 			{
-				OutputDebugStringA("ERROR: m_SwapChain is null after creation\n");
+				//OutputDebugStringA("ERROR: m_SwapChain is null after creation\n");
 			}
 		}
 	}
@@ -432,7 +432,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	{
 		char buf[128];
 		sprintf_s(buf, "ERROR: IDXGISwapChain::SetRotation FAILED: %08X\n", static_cast<unsigned>(hrRotate));
-		OutputDebugStringA(buf);
+		//OutputDebugStringA(buf);
 	}
 	DX::ThrowIfFailed(hrRotate);
 
@@ -649,17 +649,18 @@ void DX::DeviceResources::Present()
 		char buf[128];
 		sprintf_s(buf, "INFO: SwapChain::Present returned 0x%08X CurrentBackBufferIndex=%u\n",
 			static_cast<unsigned>(hr), m_SwapChain ? m_SwapChain->GetCurrentBackBufferIndex() : 0xFFFFFFFF);
-		OutputDebugStringA(buf);
+		//OutputDebugStringA(buf);
 	}
 
 	if (FAILED(hr))
 	{
-		OutputDebugStringA("ERROR: IDXGISwapChain::Present FAILED: ");
-		char buf[64]; sprintf_s(buf, "%08X\n", static_cast<unsigned>(hr)); OutputDebugStringA(buf);
+		//OutputDebugStringA("ERROR: IDXGISwapChain::Present FAILED: ");
+		char buf[64]; sprintf_s(buf, "%08X\n", static_cast<unsigned>(hr));
+		//OutputDebugStringA(buf);
 	}
 	else
 	{
-		OutputDebugStringA("INFO: Present OK\n");
+		//OutputDebugStringA("INFO: Present OK\n");
 	}
 
 	if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
@@ -700,7 +701,7 @@ void DX::DeviceResources::TestClearAndPresentOnce()
 	m_CommandQueue->ExecuteCommandLists(1, lists);
 
 	// Present and wait so we see the result
-	OutputDebugStringA("INFO: TestClearAndPresentOnce - calling Present()\n");
+	//OutputDebugStringA("INFO: TestClearAndPresentOnce - calling Present()\n");
 	Present();
 	WaitForGpu();
 }

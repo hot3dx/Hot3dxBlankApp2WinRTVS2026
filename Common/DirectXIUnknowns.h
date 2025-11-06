@@ -13,7 +13,7 @@ inline HRESULT AttachSwapChainToSwapChainPanel(winrt::Windows::UI::Xaml::Control
 {
     if (!panel || !swapChain)
     {
-        OutputDebugString(L"\n DirectXInUknowns.h if (!panel || !swapChain) return E_INVALIDARG;\n");
+        //OutputDebugString(L"\n DirectXInUknowns.h if (!panel || !swapChain) return E_INVALIDARG;\n");
         return E_INVALIDARG;
     }
 
@@ -21,7 +21,7 @@ inline HRESULT AttachSwapChainToSwapChainPanel(winrt::Windows::UI::Xaml::Control
     ::IUnknown* rawUnknown = winrt::get_unknown(panel);
     if (!rawUnknown)
     {
-        OutputDebugString(L"\n DirectXInUknowns.h ::IUnknown* rawUnknown = winrt::get_unknown(panel); if (!rawUnknown) return E_FAIL;\n");
+        //OutputDebugString(L"\n DirectXInUknowns.h ::IUnknown* rawUnknown = winrt::get_unknown(panel); if (!rawUnknown) return E_FAIL;\n");
         return E_FAIL;
     }
 
@@ -33,9 +33,9 @@ inline HRESULT AttachSwapChainToSwapChainPanel(winrt::Windows::UI::Xaml::Control
     winrt::com_ptr<ISwapChainPanelNative> panelNative = panelUnknown.as<ISwapChainPanelNative>();
     if (!panelNative)
     {
-        OutputDebugString(L"\n DirectXInUknowns.h  winrt::com_ptr<ISwapChainPanelNative> panelNative = panelUnknown.as<ISwapChainPanelNative>(); if (!panelNative) return E_NOINTERFACE\n");
+        //OutputDebugString(L"\n DirectXInUknowns.h  winrt::com_ptr<ISwapChainPanelNative> panelNative = panelUnknown.as<ISwapChainPanelNative>(); if (!panelNative) return E_NOINTERFACE\n");
         return E_NOINTERFACE;
     }
-    OutputDebugString(L"\n DirectXInUknowns.h  panelNative->SetSwapChain(swapChain) SUCCESS\n");
+    //OutputDebugString(L"\n DirectXInUknowns.h  panelNative->SetSwapChain(swapChain) SUCCESS\n");
     return panelNative->SetSwapChain(swapChain);
 }
