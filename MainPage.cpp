@@ -1,31 +1,32 @@
-﻿﻿
-#include "pch.h"
+﻿#include "pch.h"
 #include "MainPage.h"
-#include "MainPage.g.cpp"
-
+#include "Scenario1.h"
+#include "Scenario2.h"
+#include "Generated Files\MainPage.g.cpp"
+#include <winrt/Windows.UI.Xaml.Interop.h>
+#include <winrt/Windows.UI.Xaml.Controls.h>
+#include <winrt/Windows.UI.Xaml.Automation.Peers.h>
 // if you need native interop checks
-//#include <windows.ui.xaml.media.dxinterop.h> 
+//#include <windows.ui.xaml.media.dxinterop.h> CRASH US MAXIMUS!
+#include <winrt/Windows.UI.Xaml.Interop.h>
 
 using namespace winrt;
 using namespace winrt::Windows::UI::Xaml;
 using namespace winrt::Windows::UI::Xaml::Controls;
 using namespace winrt::Hot3dxBlankApp2::implementation;
 
-MainPage* MainPage::Current = nullptr;
 namespace winrt::Hot3dxBlankApp2::implementation
 {
+    MainPage* MainPage::Current = { nullptr };
 
     MainPage::MainPage()
     {
         // Initialize XAML parts first (must be called before manipulating Content() / named controls)
         InitializeComponent();
-
-        MainPage::Current = this;
-
+        
         // create DeviceResources
         m_deviceResources = std::make_shared<DeviceResources>();
 
-        //m_deviceResources->SetSwapChainPanel(swapChainPanel(), );
         // instantiate the SwapChainPanel before using it
         if (!m_swapChainPanel)
         {
@@ -34,8 +35,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
 
         // attach Loaded handler
         m_swapChainPanel.Loaded({ this, &MainPage::OnSwapChainPanelLoaded });
-        //OnSwapChainPanelLoaded2();
-
+       
         // Put the panel into the page's visual tree.
        // Wrap in try/catch to capture any HRESULT and print it.
         try
@@ -44,12 +44,22 @@ namespace winrt::Hot3dxBlankApp2::implementation
         }
         catch (winrt::hresult_error const& e)
         {
-            char buf[256];
-            sprintf_s(buf, "ERROR: Setting Content failed: 0x%08X - %ls\n", static_cast<unsigned>(e.code()), e.message().c_str());
-            OutputDebugStringA(buf);
-            throw; // optionally rethrow or handle gracefully
-        }
+            // Build a readable message and show it in the visible status area instead of OutputDebugStringA.
+            std::wstringstream ss;
+            ss << L"ERROR: Setting Content failed: 0x" << std::hex << static_cast<unsigned>(e.code()) << L" - " << e.message().c_str();
 
+            // NotifyUser updates the visible status panel (calls UpdateStatus on the UI thread).
+            NotifyUser(winrt::hstring{ ss.str() }, NotifyType::ErrorMessage);
+
+        }
+        winrt::hresult_error const& e = {};
+        e.code() = S_OK;
+		e.message() = L"Setting Content succeeded";
+        std::wstringstream ss;
+        ss << L"ERROR_SUCCESS: Setting Content succeeded MainPage. cpp line 57" << std::hex << static_cast<unsigned>(e.code()) << L" - " << e.message().c_str();
+
+        // NotifyUser updates the visible status panel (calls UpdateStatus on the UI thread).
+        NotifyUser(winrt::hstring{ ss.str() }, NotifyType::StatusMessage);
         // mark window invisible until ready
         m_windowVisible = false;
     }
@@ -123,19 +133,44 @@ namespace winrt::Hot3dxBlankApp2::implementation
         throw hresult_not_implemented();
     }
 
-    void MainPage::ClickHandler(IInspectable const&, RoutedEventArgs const&)
+    void MainPage::Button1ClickHandler(IInspectable const&, RoutedEventArgs const&)
     {
-        myButton().Content(box_value(L"Clicked"));
+        myButton().Content(box_value(L"Clicked 1"));
+    }
+
+    void MainPage::Button2ClickHandler(IInspectable const&, RoutedEventArgs const&)
+    {
+        myButton2().Content(box_value(L"Clicked 2"));
     }
     // For all methods with unreferenced formal parameters, mark them as unreferenced to suppress C4100 warnings.
 
     void MainPage::Button_Click(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args)
     {
-        auto button = sender.as<Windows::UI::Xaml::Controls::Button>();
-        button.Content(box_value(L"Clicked"));
-        auto originalSource = args.OriginalSource();
-        // You can add more logic here to handle the button click event
+        Splitter().IsPaneOpen(!Splitter().IsPaneOpen());
     }
+    /*
+    void MainPage::ScenarioControl_SelectionChanged(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::Controls::SelectionChangedEventArgs const& args)
+    {
+        if (args.AddedItems().Size() > 0)
+        {
+            ScenarioControl().SelectedItem(args.AddedItems().GetAt(0));
+            auto selectedItem = args.AddedItems().GetAt(0).as<Windows::UI::Xaml::Controls::ListBoxItem>();
+            if (selectedItem)
+            {
+                auto scenarioName = winrt::unbox_value<hstring>(selectedItem.Content());
+                if (scenarioName == L"Scenario1")
+                {
+                    //ScenarioFrame().Navigate(xaml_typename<Hot3dxBlankApp2::Scenario1>());
+                }
+                else if (scenarioName == L"Scenario2")
+                {
+                    //ScenarioFrame().Navigate(xaml_typename<Hot3dxBlankApp2::Scenario2>());
+                }
+            }
+        }
+    }
+    */
+
 
     void MainPage::ScenarioControl_SelectionChanged(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::Controls::SelectionChangedEventArgs const& args)
     {
@@ -149,17 +184,17 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 auto scenarioName = winrt::unbox_value<hstring>(selectedItem.Content());
                 if (scenarioName == L"Scenario1")
                 {
-                    // ScenarioFrame().Navigate(xaml_typename<Hot3dxWinRTUWPXaml::Scenario1>());
+                    ScenarioFrame().Navigate(xaml_typename<Hot3dxBlankApp2::Scenario1>());
                 }
                 else if (scenarioName == L"Scenario2")
                 {
-                    //  ScenarioFrame().Navigate(xaml_typename<Hot3dxWinRTUWPXaml::Scenario2>());
+                    ScenarioFrame().Navigate(xaml_typename<Hot3dxBlankApp2::Scenario2>());
                 }
                 // Add more scenarios as needed
             }
         }
     }
-
+    
     void MainPage::Footer_Click(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args)
     {
         try
@@ -259,5 +294,118 @@ namespace winrt::Hot3dxBlankApp2::implementation
     void winrt::Hot3dxBlankApp2::implementation::MainPage::ToggleButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
     {
         Splitter().IsPaneOpen(!Splitter().IsPaneOpen());
+    }
+
+    void MainPage::UpdateStatus(hstring strMessage, NotifyType type)
+    {
+        using namespace winrt::Windows::UI;
+        using namespace winrt::Windows::UI::Xaml;
+
+        switch (type)
+        {
+        case NotifyType::StatusMessage:
+        {
+            winrt::Windows::UI::Xaml::Media::SolidColorBrush brush1;
+            brush1.Color(Colors::DarkBlue());
+            StatusBorder().Background(brush1);
+        }
+        break;
+
+        case NotifyType::ErrorMessage:
+        {
+            winrt::Windows::UI::Xaml::Media::SolidColorBrush brush1;
+            brush1.Color(Colors::Red());
+            StatusBorder().Background(brush1);
+        }
+        break;
+
+        default:
+            break;
+        }
+
+        StatusBlock().Text(strMessage);
+
+        // Collapse the StatusBlock if it has no text to conserve real estate.
+        if (StatusBlock().Text() != L"")
+        {
+            StatusBorder().Visibility(Visibility::Visible);
+            StatusPanel().Visibility(Visibility::Visible);
+        }
+        else
+        {
+            StatusBorder().Visibility(Visibility::Collapsed);
+            StatusPanel().Visibility(Visibility::Collapsed);
+        }
+
+        // Raise an event if necessary to enable a screen reader to announce the status update.
+        auto peer1 = winrt::Windows::UI::Xaml::Automation::Peers::FrameworkElementAutomationPeer::FromElement(StatusBlock());
+        if (peer1)
+        {
+            peer1.RaiseAutomationEvent(winrt::Windows::UI::Xaml::Automation::Peers::AutomationEvents::LiveRegionChanged);
+        }
+    }
+    /*
+    void MainPage::UpdateStatus(hstring strMessage, NotifyType type)
+    {
+        switch (type)
+        {
+        case NotifyType::StatusMessage:
+        {
+            winrt::Windows::UI::Xaml::Media::SolidColorBrush brush1 = winrt::Windows::UI::Xaml::Media::SolidColorBrush();        brush1.Color() = { winrt::Windows::UI::Colors::DarkBlue()};
+            brush1.Color() = { winrt::Windows::UI::Colors::DarkBlue().A, winrt::Windows::UI::Colors::DarkBlue().B, winrt::Windows::UI::Colors::DarkBlue().G, winrt::Windows::UI::Colors::DarkBlue().R };
+            StatusBorder().Background() = brush1;
+        };
+            break;
+        
+        case NotifyType::ErrorMessage:
+        {
+            winrt::Windows::UI::Xaml::Media::SolidColorBrush brush1 = winrt::Windows::UI::Xaml::Media::SolidColorBrush();
+            brush1.Color() = { winrt::Windows::UI::Colors::Red().A, winrt::Windows::UI::Colors::Red().B, winrt::Windows::UI::Colors::Red().G, winrt::Windows::UI::Colors::Red().R };
+            StatusBorder().Background() = brush1;
+        };
+        break;
+        
+        default:
+            break;
+        }
+
+        StatusBlock().Text() = strMessage;
+
+        // Collapse the StatusBlock if it has no text to conserve real estate.
+        if (StatusBlock().Text() != L"")
+        {
+            StatusBorder().Visibility({ winrt::Windows::UI::Xaml::Visibility::Visible });
+            StatusPanel().Visibility({ winrt::Windows::UI::Xaml::Visibility::Visible });
+        }
+        else
+        {
+            StatusBorder().Visibility({ winrt::Windows::UI::Xaml::Visibility::Collapsed });
+            StatusPanel().Visibility({ winrt::Windows::UI::Xaml::Visibility::Collapsed });
+        }
+
+        // Raise an event if necessary to enable a screen reader to announce the status update.
+        
+        winrt::Windows::UI::Xaml::Automation::Peers::FrameworkElementAutomationPeer apeer();
+        auto peer1 = apeer().FromElement({StatusBlock()});
+        if (peer1 != nullptr)
+        {
+            peer1.RaiseAutomationEvent({ winrt::Windows::UI::Xaml::Automation::Peers::AutomationEvents::LiveRegionChanged });
+        }
+    }
+    */
+    void MainPage::NotifyUser(hstring strMessage, NotifyType type)
+    {
+        if (Dispatcher().HasThreadAccess())
+        {
+            UpdateStatus(strMessage, type);
+        }
+        else
+        {
+            Dispatcher().RunAsync(CoreDispatcherPriority::Normal, DispatchedHandler([strMessage, type, this]()
+                {
+                    UpdateStatus(strMessage, type);
+
+                }));
+        }
     }
 }

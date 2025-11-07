@@ -9,10 +9,10 @@
 
     <!-- Left Side Controls -->
     <SwapChainPanel x:Name="swapChainPanel" Margin="500,0,0,0" Visibility="Visible">
-    <SwapChainPanel.RowDefinitions>
-        <RowDefinition Height="93*"/>
-        <RowDefinition Height="7*"/>
-    </SwapChainPanel.RowDefinitions>
+        <SwapChainPanel.RowDefinitions>
+            <RowDefinition Height="93*"/>
+            <RowDefinition Height="7*"/>
+        </SwapChainPanel.RowDefinitions>
         <StackPanel x:Name="HeaderPanel" HorizontalAlignment="Left"  Margin="-500,0,0,0" Width="500" Background="DarkGreen" Visibility="Visible" Grid.RowSpan="2">
             <!-- Right Side Controls 
     <SwapChainPanel x:Name="swapChainPanel" Margin="0,0,500,0">
@@ -34,12 +34,14 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button x:Name="myButton" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ClickHandler">Click Me</Button>
 
                 <SplitView x:Name="Splitter" OpenPaneLength="100" MinHeight="700" Width="500" HorizontalAlignment="Right" Margin="0,0,0,0" 
            IsPaneOpen="True" Grid.Row="2" DisplayMode="Inline">
                     <SplitView.Pane>
                         <RelativePanel Height="Auto">
+                            <Button x:Name="myButton" Margin="10,50,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button1ClickHandler">Click Me 1</Button>
+                            <Button x:Name="myButton2" Margin="10,100,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button2ClickHandler">Click Me 2</Button>
+
                             <TextBlock x:Name="Kubed3DHot3dxMaker3DX12" Text="Control Menu" Style="{StaticResource SampleHeaderTextStyle}" TextWrapping="Wrap" Margin="2,10,0,0"/>
                             <!-- Provide an AutomationProperties.Name for a list to a screen reader. A shipping app would localize this. -->
                             <ListBox x:Name="ScenarioControl" SelectionChanged="ScenarioControl_SelectionChanged" AutomationProperties.Name="Scenarios"

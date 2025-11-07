@@ -5,6 +5,6 @@ namespace Hot3dxBlankApp2
     {
         MainPage();
         Int32 MyProperty;
-        
     }
+
 }

@@ -5,10 +5,14 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="MainPage.xaml" />
+    <Page Include="Scenario1.xaml" />
+    <Page Include="Scenario2.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="App.idl" />
     <Midl Include="MainPage.idl" />
+    <Midl Include="Scenario1.idl" />
+    <Midl Include="Scenario2.idl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -21,6 +25,8 @@
     <ClCompile Include="Content\Sample3DSceneRenderer.cpp">
       <Filter>Content</Filter>
     </ClCompile>
+    <ClCompile Include="Scenario1.cpp" />
+    <ClCompile Include="Scenario2.cpp" />
     <ClCompile Include="Generated Files\module.g.cpp">
       <Filter>Generted Files</Filter>
     </ClCompile>
@@ -43,6 +49,14 @@
     <ClInclude Include="Content\ShaderStructures.h">
       <Filter>Content</Filter>
     </ClInclude>
+    <ClInclude Include="Common\DirectXIUnknowns.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\d3dx12.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenario1.h" />
+    <ClInclude Include="Scenario2.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
@@ -172,9 +186,9 @@
     <None Include="PropertySheet.props" />
     <None Include="packages.config" />
     <None Include="Hot3dxStyles.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="readme.txt" />
+    <None Include="README.md" />
+    <None Include="PrivacyPolicy.md" />
+    <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">

@@ -1,0 +1,8 @@
+namespace Hot3dxBlankApp2
+{
+    [default_interface]
+    runtimeclass Scenario2 : Windows.UI.Xaml.Controls.Page
+    {
+        Scenario2();
+	}
+}

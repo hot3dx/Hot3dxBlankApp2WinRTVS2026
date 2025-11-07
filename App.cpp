@@ -2,7 +2,7 @@
 
 #include "App.h"
 #include "MainPage.h"
-
+#include <debugapi.h>
 using namespace winrt;
 using namespace winrt::Windows::ApplicationModel;
 using namespace winrt::Windows::ApplicationModel::Activation;

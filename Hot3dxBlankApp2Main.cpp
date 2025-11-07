@@ -128,18 +128,18 @@ bool Hot3dxBlankApp2Main::Render()
 	if (m_sceneRenderer)
 	{
 		sceneRendered = m_sceneRenderer->Render();
-		OutputDebugStringA(sceneRendered ? "INFO: SceneRenderer::Render returned TRUE\n" : "INFO: SceneRenderer::Render returned FALSE\n");
+		//OutputDebugStringA(sceneRendered ? "INFO: SceneRenderer::Render returned TRUE\n" : "INFO: SceneRenderer::Render returned FALSE\n");
 	}
 
 	// Make sure we actually present the swap chain
 	if (m_deviceResources && sceneRendered)
 	{
-		OutputDebugStringA("INFO: Calling DeviceResources::Present()\n");
+		//OutputDebugStringA("INFO: Calling DeviceResources::Present()\n");
 		m_deviceResources->Present();
 	}
 	else
 	{
-		OutputDebugStringA("WARN: Skipping Present (no deviceResources or nothing rendered)\n");
+		//OutputDebugStringA("WARN: Skipping Present (no deviceResources or nothing rendered)\n");
 	}
 
 	return sceneRendered;

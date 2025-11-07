@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "MainPage.g.h"
+#include "Generated Files\MainPage.g.h"
 #include "Common/DeviceResources.h"
 #include "Hot3dxBlankApp2Main.h"
 
@@ -31,21 +31,21 @@
 #include <winrt/Windows.UI.Composition.Core.h>
 #include <winrt/Windows.UI.Composition.Effects.h>
 #include <winrt/Windows.UI.Composition.Scenes.h>
-//#include <winrt/Windows.UI.Composition.AnimationMetrics.h>
-//#include <winrt/Windows.UI.Composition.SystemBackdrops.h>
 #include <winrt/Windows.Graphics.Effects.h>
-//#include <winrt/Microsoft.Graphics.Canvas.h>
-//#include <winrt/Microsoft.Graphics.Canvas.Effects.h>
-//#include <winrt/Microsoft.Graphics.Canvas.UI.Composition.h>
-//#include <winrt/Microsoft.Graphics.Canvas.UI.Xaml.h>
-//#include <winrt/Microsoft.Graphics.Canvas.Text.h>
-//#include <winrt/Microsoft.Graphics.Canvas.Brushes.h>
-//#include <winrt/Microsoft.Graphics.Canvas.Geometry.h>
-//#include <winrt/Microsoft.Graphics.Canvas.UI.h>
-
+#include <winrt/Windows.System.h>
+#include <winrt/Windows.System.Threading.h>
+#include <winrt/Windows.System.Threading.Core.h>
 
 namespace winrt::Hot3dxBlankApp2::implementation
 {
+
+    enum class NotifyType
+    {
+        StatusMessage,
+        ErrorMessage
+    };
+
+    
     struct MainPage : MainPageT<MainPage>
     {
         MainPage();
@@ -53,6 +53,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
         void OnSwapChainPanelSizeChanged(winrt::Windows::Foundation::IInspectable const&, winrt::Windows::UI::Xaml::SizeChangedEventArgs const& args);
 
         static MainPage* Current;
+
         int32_t MyProperty();
         void MyProperty(int32_t value);
 
@@ -60,7 +61,11 @@ namespace winrt::Hot3dxBlankApp2::implementation
         void OnSwapChainPanelLoaded(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& args);
 
 
-        void ClickHandler(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args);
+        //void ClickHandler(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args);
+        
+        void Button1ClickHandler(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args);
+
+        void Button2ClickHandler(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args);
 
         void Button_Click(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& args);
 
@@ -85,9 +90,12 @@ namespace winrt::Hot3dxBlankApp2::implementation
         
         void ToggleButton_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
 
+
+        void NotifyUser(hstring strMessage, NotifyType type);
         ///////////////////////
 	private:
         
+        void UpdateStatus(hstring strMessage, NotifyType type);
         //void RotateYaw(float deg);
 
         //void RotatePitch(float deg);
@@ -99,7 +107,6 @@ namespace winrt::Hot3dxBlankApp2::implementation
         std::shared_ptr<DeviceResources> m_deviceResources;
         std::unique_ptr<Hot3dxBlankApp2Main> m_main;
         bool m_windowVisible{ false };
-       
        
     };
 }

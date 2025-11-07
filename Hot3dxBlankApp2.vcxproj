@@ -80,9 +80,27 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="PropertySheet.props" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <GenerateTestArtifacts>True</GenerateTestArtifacts>
+    <AppxBundle>Always</AppxBundle>
+    <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
+    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView.2.1.0.2849.39;$(IncludePath)</IncludePath>
+    <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView2.1.0.3595.46;$(IncludePath)$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView2.1.0.3595.46;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView2.1.0.3595.46;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(Solution)\packages\WinPixEventRuntime.1.0.240308001;$(Solution)\packages\Microsoft.Windows.CppWinRT.2.0.220531.1;$(Solution)\packages\MicrosoftWebWebView2.1.0.3595.46;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -170,6 +188,12 @@
     <ClInclude Include="MainPage.h">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </ClInclude>
+    <ClInclude Include="Scenario1.h">
+      <DependentUpon>Scenario1.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="Scenario2.h">
+      <DependentUpon>Scenario2.xaml</DependentUpon>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -179,8 +203,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </None>
+    <None Include="PrivacyPolicy.md" />
     <None Include="README.md" />
     <Page Include="MainPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Scenario1.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Scenario2.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
@@ -242,6 +273,12 @@
     <ClCompile Include="MainPage.cpp">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </ClCompile>
+    <ClCompile Include="Scenario1.cpp">
+      <DependentUpon>Scenario1.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="Scenario2.cpp">
+      <DependentUpon>Scenario2.xaml</DependentUpon>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="App.idl">
@@ -249,6 +286,12 @@
     </Midl>
     <Midl Include="MainPage.idl">
       <DependentUpon>MainPage.xaml</DependentUpon>
+    </Midl>
+    <Midl Include="Scenario1.idl">
+      <DependentUpon>Scenario1.xaml</DependentUpon>
+    </Midl>
+    <Midl Include="Scenario2.idl">
+      <DependentUpon>Scenario2.xaml</DependentUpon>
     </Midl>
   </ItemGroup>
   <ItemGroup>
@@ -282,6 +325,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
