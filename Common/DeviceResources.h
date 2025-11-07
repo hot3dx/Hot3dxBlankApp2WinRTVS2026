@@ -77,6 +77,8 @@ namespace DX
 		void CreateWindowSizeDependentResources();
 		void HandleDeviceLost();
 
+		
+
 	private:
 		void CreateDeviceIndependentResources();
 		void CreateDeviceResources();
@@ -86,6 +88,7 @@ namespace DX
 		DXGI_MODE_ROTATION ComputeDisplayRotation();
 		void GetHardwareAdapter(IDXGIAdapter1** ppAdapter);
 
+		
 		UINT											m_currentFrame{ 0 };
 
 		// Direct3D objects (use winrt::com_ptr consistently).
@@ -137,5 +140,7 @@ namespace DX
 
 		// The IDeviceNotify can be held directly as it owns the DeviceResources.
 		IDeviceNotify* m_deviceNotify{ nullptr };
+
+		
 	};
 }

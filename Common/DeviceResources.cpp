@@ -12,7 +12,7 @@
 #include <unknwn.h>
 #include <winrt/windows.foundation.h>
 #include <algorithm>
-
+#include <winrt/base.h>
 #include <winrt/windows.graphics.display.h>
 #include <winrt/windows.ui.core.h>
 #include <winrt/windows.ui.xaml.controls.h>
@@ -96,7 +96,7 @@ DX::DeviceResources::DeviceResources(DXGI_FORMAT backBufferFormat, DXGI_FORMAT d
 {
 	CreateDeviceIndependentResources();
 	CreateDeviceResources();
-	//CreateWindowSizeDependentResources();
+	
 }
 
 void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel const& panel, winrt::Windows::UI::Core::CoreWindow const& window)
@@ -814,3 +814,57 @@ void DX::DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)
 
 	*ppAdapter = adapter;
 }
+
+// add near top of file (replace previous LogStatus)
+#include <cstdio>
+#include <string>
+#include "MainPage.h"
+// Macro to capture source location automatically
+#define LOG_STATUS(isError, fmt, ...) LogStatusImpl(__FILE__, __LINE__, isError, fmt, ##__VA_ARGS__)
+
+static void LogStatusImpl(const char* file, int line, bool isError, const char* fmt, ...)
+{
+
+	char msgBuf[1024];
+	va_list ap;
+	va_start(ap, fmt);
+#if defined(_MSC_VER)
+	vsnprintf_s(msgBuf, _countof(msgBuf), _TRUNCATE, fmt, ap);
+#else
+	vsnprintf(msgBuf, sizeof(msgBuf), fmt, ap);
+#endif
+	va_end(ap);
+
+	// Shorten file path to filename
+	std::string fname = file ? file : "unknown";
+	size_t pos = fname.find_last_of("\\/");
+	if (pos != std::string::npos) fname = fname.substr(pos + 1);
+
+	// Build final ANSI/UTF-8 message: "filename(line): message"
+	char finalBuf[1280];
+	snprintf(finalBuf, sizeof(finalBuf), "%s(%d): %s", fname.c_str(), line, msgBuf);
+
+	// Convert to wide string assuming UTF-8 input (use CP_UTF8). Change code page if needed.
+	std::wstring wbuf;
+	int wlen = MultiByteToWideChar(CP_UTF8, 0, finalBuf, -1, nullptr, 0);
+	if (wlen > 0)
+	{
+		wbuf.resize(static_cast<size_t>(wlen - 1));
+		MultiByteToWideChar(CP_UTF8, 0, finalBuf, -1, &wbuf[0], wlen);
+	}
+
+	// Forward to visible status panel when available, else fallback to debug output.
+	//winrt::Hot3dxBlankApp2::implementation::MainPage::Current
+	
+	if(winrt::Hot3dxBlankApp2::implementation::MainPage::Current){
+	   auto notifyType = isError ? winrt::Hot3dxBlankApp2::implementation::NotifyType::ErrorMessage : winrt::Hot3dxBlankApp2::implementation::NotifyType::StatusMessage;
+	   winrt::Hot3dxBlankApp2::implementation::MainPage::Current->NotifyUser(winrt::hstring{wbuf}, notifyType);
+	}
+	else
+	{
+#ifndef _DEBUG
+		OutputDebugStringW((wbuf + L"\n").c_str());
+#endif	
+	}
+}
+
