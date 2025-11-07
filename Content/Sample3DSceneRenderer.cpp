@@ -64,11 +64,11 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		if (!d3dDevice)
 		{
-			OutputDebugStringA("ERROR: D3D device is null in CreateDeviceDependentResources()\n");
+			//OutputDebugStringA("ERROR: D3D device is null in CreateDeviceDependentResources()\n");
 		}
 		else
 		{
-			OutputDebugStringA("INFO: D3D device valid in CreateDeviceDependentResources()\n");
+			//OutputDebugStringA("INFO: D3D device valid in CreateDeviceDependentResources()\n");
 		}
 	}
 	// Create a root signature with a single constant buffer slot.
@@ -127,7 +127,7 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		char msg[256];
 		sprintf_s(msg, "INFO: Loaded vertex shader bytes=%u\n", static_cast<unsigned>(bufferV.Length()));
-		OutputDebugStringA(msg);
+		//OutputDebugStringA(msg);
 	}
 	winrt::Windows::Storage::Streams::IBuffer bufferP = co_await DX::ReadMyDataAsync(shaderP);
 	winrt::com_array<uint8_t> pixelData(bufferP.Length());
@@ -142,7 +142,7 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		char msg[256];
 		sprintf_s(msg, "INFO: Loaded pixel shader bytes=%u\n", static_cast<unsigned>(bufferP.Length()));
-		OutputDebugStringA(msg);
+		//OutputDebugStringA(msg);
 	}
 	// Create the pipeline state once the shaders are loaded.
 	//auto createPipelineStateTask = (createPSTask && createVSTask).then([this]() {
