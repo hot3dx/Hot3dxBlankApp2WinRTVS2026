@@ -13,12 +13,20 @@
 
 #include "App.h"
 #include "MainPage.h"
+#include "Scenario1.h"
+#include "Scenario2.h"
 #include "XamlBindingInfo.xaml.g.hpp"
 #if __has_include("App.xaml.g.hpp")
 #include "App.xaml.g.hpp"
 #endif
 #if __has_include("MainPage.xaml.g.hpp")
 #include "MainPage.xaml.g.hpp"
+#endif
+#if __has_include("Scenario1.xaml.g.hpp")
+#include "Scenario1.xaml.g.hpp"
+#endif
+#if __has_include("Scenario2.xaml.g.hpp")
+#include "Scenario2.xaml.g.hpp"
 #endif
 
 
@@ -119,18 +127,32 @@ const TypeInfo TypeInfos[] =
     //   1
     L"Hot3dxBlankApp2.MainPage", L"",
     &ActivateLocalType<::winrt::Hot3dxBlankApp2::implementation::MainPage>, nullptr, nullptr, nullptr,
-    2, // Windows.UI.Xaml.Controls.Page
+    4, // Windows.UI.Xaml.Controls.Page
     0, 0, -1, TypeKind::Custom,
     TypeInfo_Flags_IsLocalType | TypeInfo_Flags_None,
     -1,
     //   2
+    L"Hot3dxBlankApp2.Scenario1", L"",
+    &ActivateLocalType<::winrt::Hot3dxBlankApp2::implementation::Scenario1>, nullptr, nullptr, nullptr,
+    4, // Windows.UI.Xaml.Controls.Page
+    1, 0, -1, TypeKind::Custom,
+    TypeInfo_Flags_IsLocalType | TypeInfo_Flags_None,
+    -1,
+    //   3
+    L"Hot3dxBlankApp2.Scenario2", L"",
+    &ActivateLocalType<::winrt::Hot3dxBlankApp2::implementation::Scenario2>, nullptr, nullptr, nullptr,
+    4, // Windows.UI.Xaml.Controls.Page
+    1, 0, -1, TypeKind::Custom,
+    TypeInfo_Flags_IsLocalType | TypeInfo_Flags_None,
+    -1,
+    //   4
     L"Windows.UI.Xaml.Controls.Page", L"",
     nullptr, nullptr, nullptr, nullptr,
     -1,
     1, 0, -1, TypeKind::Metadata,
     TypeInfo_Flags_IsSystemType | TypeInfo_Flags_None,
     -1,
-    //   3
+    //   5
     L"Windows.UI.Xaml.Controls.UserControl", L"",
     nullptr, nullptr, nullptr, nullptr,
     -1,
@@ -172,18 +194,18 @@ constexpr uint32_t TypeInfoLookup[] = {
       1,   //  23
       1,   //  24
       2,   //  25
-      2,   //  26
-      2,   //  27
-      2,   //  28
-      2,   //  29
-      3,   //  30
-      3,   //  31
-      3,   //  32
-      3,   //  33
-      3,   //  34
-      3,   //  35
-      3,   //  36
-      4,   //  37
+      4,   //  26
+      4,   //  27
+      4,   //  28
+      4,   //  29
+      5,   //  30
+      5,   //  31
+      5,   //  32
+      5,   //  33
+      5,   //  34
+      5,   //  35
+      5,   //  36
+      6,   //  37
 };
 
 struct MemberInfo 

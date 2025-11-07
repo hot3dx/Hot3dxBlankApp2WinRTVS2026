@@ -51,42 +51,29 @@ namespace winrt::Hot3dxBlankApp2::implementation
             break;
         case 4:
             {
-                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Button>();
-                this->myButton(targetElement);
-                auto weakThis = ::winrt::make_weak<class_type>(*this);
-                targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
-                    if (auto t = weakThis.get())
-                    {
-                        ::winrt::get_self<D>(t)->ClickHandler(p0, p1);
-                    }
-                });
-            }
-            break;
-        case 5:
-            {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::SplitView>();
                 this->Splitter(targetElement);
             }
             break;
-        case 6:
+        case 5:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::StackPanel>();
                 this->HeaderPanel1(targetElement);
             }
             break;
-        case 7:
+        case 6:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Image>();
                 this->Hot3dxLogo(targetElement);
             }
             break;
-        case 8:
+        case 7:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
                 this->Header(targetElement);
             }
             break;
-        case 9:
+        case 8:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Primitives::ToggleButton>();
                 auto weakThis = ::winrt::make_weak<class_type>(*this);
@@ -98,19 +85,45 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
-        case 10:
+        case 9:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::FontIcon>();
                 this->Hamburger(targetElement);
             }
             break;
+        case 10:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Button>();
+                this->myButton(targetElement);
+                auto weakThis = ::winrt::make_weak<class_type>(*this);
+                targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
+                    if (auto t = weakThis.get())
+                    {
+                        ::winrt::get_self<D>(t)->Button1ClickHandler(p0, p1);
+                    }
+                });
+            }
+            break;
         case 11:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Button>();
+                this->myButton2(targetElement);
+                auto weakThis = ::winrt::make_weak<class_type>(*this);
+                targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
+                    if (auto t = weakThis.get())
+                    {
+                        ::winrt::get_self<D>(t)->Button2ClickHandler(p0, p1);
+                    }
+                });
+            }
+            break;
+        case 12:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
                 this->Kubed3DHot3dxMaker3DX12(targetElement);
             }
             break;
-        case 12:
+        case 13:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::ListBox>();
                 this->ScenarioControl(targetElement);
@@ -123,25 +136,25 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
-        case 13:
+        case 14:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::StackPanel>();
                 this->FooterPanel(targetElement);
             }
             break;
-        case 14:
+        case 15:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
                 this->Copyright(targetElement);
             }
             break;
-        case 15:
+        case 16:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::StackPanel>();
                 this->LinksPanel(targetElement);
             }
             break;
-        case 16:
+        case 17:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::HyperlinkButton>();
                 auto weakThis = ::winrt::make_weak<class_type>(*this);
@@ -153,7 +166,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
-        case 17:
+        case 18:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::HyperlinkButton>();
                 this->PrivacyLink(targetElement);
@@ -166,25 +179,25 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
-        case 19:
+        case 20:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Frame>();
                 this->ScenarioFrame(targetElement);
             }
             break;
-        case 20:
+        case 21:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::StackPanel>();
                 this->StatusPanel(targetElement);
             }
             break;
-        case 21:
+        case 22:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Border>();
                 this->StatusBorder(targetElement);
             }
             break;
-        case 22:
+        case 23:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
                 this->StatusBlock(targetElement);

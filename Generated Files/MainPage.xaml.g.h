@@ -45,15 +45,6 @@ namespace winrt::Hot3dxBlankApp2::implementation
             _HeaderPanel = value;
         }
 
-        ::winrt::Windows::UI::Xaml::Controls::Button myButton()
-        {
-            return _myButton;
-        }
-        void myButton(::winrt::Windows::UI::Xaml::Controls::Button value)
-        {
-            _myButton = value;
-        }
-
         ::winrt::Windows::UI::Xaml::Controls::SplitView Splitter()
         {
             return _Splitter;
@@ -97,6 +88,24 @@ namespace winrt::Hot3dxBlankApp2::implementation
         void Hamburger(::winrt::Windows::UI::Xaml::Controls::FontIcon value)
         {
             _Hamburger = value;
+        }
+
+        ::winrt::Windows::UI::Xaml::Controls::Button myButton()
+        {
+            return _myButton;
+        }
+        void myButton(::winrt::Windows::UI::Xaml::Controls::Button value)
+        {
+            _myButton = value;
+        }
+
+        ::winrt::Windows::UI::Xaml::Controls::Button myButton2()
+        {
+            return _myButton2;
+        }
+        void myButton2(::winrt::Windows::UI::Xaml::Controls::Button value)
+        {
+            _myButton2 = value;
         }
 
         ::winrt::Windows::UI::Xaml::Controls::TextBlock Kubed3DHot3dxMaker3DX12()
@@ -193,17 +202,18 @@ namespace winrt::Hot3dxBlankApp2::implementation
         bool _contentLoaded{false};
 
     private:
-        struct MainPage_obj18_Bindings;
+        struct MainPage_obj19_Bindings;
         struct MainPage_obj1_Bindings;
 
         ::winrt::Windows::UI::Xaml::Controls::SwapChainPanel _swapChainPanel{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _HeaderPanel{nullptr};
-        ::winrt::Windows::UI::Xaml::Controls::Button _myButton{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::SplitView _Splitter{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _HeaderPanel1{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::Image _Hot3dxLogo{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::TextBlock _Header{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::FontIcon _Hamburger{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::Button _myButton{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::Button _myButton2{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::TextBlock _Kubed3DHot3dxMaker3DX12{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::ListBox _ScenarioControl{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _FooterPanel{nullptr};

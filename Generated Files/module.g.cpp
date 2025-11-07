@@ -3,6 +3,8 @@
 #include "pch.h"
 #include "winrt/base.h"
 void* winrt_make_Hot3dxBlankApp2_MainPage();
+void* winrt_make_Hot3dxBlankApp2_Scenario1();
+void* winrt_make_Hot3dxBlankApp2_Scenario2();
 void* winrt_make_Hot3dxBlankApp2_XamlMetaDataProvider();
 
 bool __stdcall winrt_can_unload_now() noexcept
@@ -26,6 +28,16 @@ void* __stdcall winrt_get_activation_factory([[maybe_unused]] std::wstring_view 
     if (requal(name, L"Hot3dxBlankApp2.MainPage"))
     {
         return winrt_make_Hot3dxBlankApp2_MainPage();
+    }
+
+    if (requal(name, L"Hot3dxBlankApp2.Scenario1"))
+    {
+        return winrt_make_Hot3dxBlankApp2_Scenario1();
+    }
+
+    if (requal(name, L"Hot3dxBlankApp2.Scenario2"))
+    {
+        return winrt_make_Hot3dxBlankApp2_Scenario2();
     }
 
     if (requal(name, L"Hot3dxBlankApp2.XamlMetaDataProvider"))
