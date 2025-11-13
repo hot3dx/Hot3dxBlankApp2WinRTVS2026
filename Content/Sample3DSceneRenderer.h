@@ -23,6 +23,7 @@ namespace winrt::Hot3dxBlankApp2
 		void StartTracking();
 		void TrackingUpdate(float positionX, float positionY);
 		void StopTracking();
+		void ReleaseDeviceDependentResources();
 		bool IsTracking() { return m_tracking; }
 
 
@@ -37,7 +38,7 @@ namespace winrt::Hot3dxBlankApp2
 
 	private:
 		// Constant buffers must be 256-byte aligned.
-		static const UINT c_alignedConstantBufferSize = (sizeof(ModelViewProjectionConstantBuffer) + 255) & ~255;
+		inline static const UINT c_alignedConstantBufferSize = (sizeof(ModelViewProjectionConstantBuffer) + 255) & ~255;
 
 		// Cached pointer to device resources.
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;

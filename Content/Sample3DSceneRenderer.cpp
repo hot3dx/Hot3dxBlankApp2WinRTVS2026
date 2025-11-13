@@ -17,6 +17,33 @@
 #include<winrt/windows.storage.h>
 #include<winrt/windows.storage.streams.h>
 
+// Add near top of file (after using statements) — helper ensures command list exists.
+inline static HRESULT EnsureCommandList(const std::shared_ptr<DX::DeviceResources>& deviceResources,
+	winrt::com_ptr<ID3D12GraphicsCommandList>& cmdList, ID3D12PipelineState* pso)
+{
+	if (cmdList) return S_OK;
+
+	auto device = deviceResources->GetD3DDevice();
+	if (!device) return E_POINTER;
+
+	ID3D12CommandAllocator* allocator = deviceResources->GetCommandAllocator();
+	if (!allocator) return E_POINTER;
+
+	ID3D12GraphicsCommandList* raw = nullptr;
+	HRESULT hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator, pso, IID_PPV_ARGS(&raw));
+	if (FAILED(hr)) return hr;
+
+	// Attach to com_ptr and close so caller can Reset later.
+	cmdList.attach(raw);
+	hr = cmdList->Close(); // created command lists are open; close to prepare for Reset().
+	if (FAILED(hr))
+	{
+		cmdList = nullptr;
+		return hr;
+	}
+	return S_OK;
+}
+
 using namespace winrt::Hot3dxBlankApp2;
 
 
@@ -51,9 +78,13 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 	CreateWindowSizeDependentResources();
 }
 
+// Modify destructor to be defensive.
 Sample3DSceneRenderer::~Sample3DSceneRenderer()
 {
-	m_constantBuffer->Unmap(0, nullptr);
+	if (m_constantBuffer)
+	{
+		m_constantBuffer->Unmap(0, nullptr);
+	}
 	m_mappedConstantBuffer = nullptr;
 }
 
@@ -64,11 +95,15 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		if (!d3dDevice)
 		{
-			//OutputDebugStringA("ERROR: D3D device is null in CreateDeviceDependentResources()\n");
+#ifndef _DEBUG
+			OutputDebugStringA("ERROR: D3D device is null in CreateDeviceDependentResources()\n");
+#endif
 		}
 		else
 		{
-			//OutputDebugStringA("INFO: D3D device valid in CreateDeviceDependentResources()\n");
+#ifndef _DEBUG
+			OutputDebugStringA("INFO: D3D device valid in CreateDeviceDependentResources()\n");
+#endif
 		}
 	}
 	// Create a root signature with a single constant buffer slot.
@@ -127,7 +162,9 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		char msg[256];
 		sprintf_s(msg, "INFO: Loaded vertex shader bytes=%u\n", static_cast<unsigned>(bufferV.Length()));
-		//OutputDebugStringA(msg);
+#ifndef _DEBUG
+		OutputDebugStringA(msg);
+#endif
 	}
 	winrt::Windows::Storage::Streams::IBuffer bufferP = co_await DX::ReadMyDataAsync(shaderP);
 	winrt::com_array<uint8_t> pixelData(bufferP.Length());
@@ -142,12 +179,14 @@ winrt::Windows::Foundation::IAsyncAction Sample3DSceneRenderer::CreateDeviceDepe
 	{
 		char msg[256];
 		sprintf_s(msg, "INFO: Loaded pixel shader bytes=%u\n", static_cast<unsigned>(bufferP.Length()));
-		//OutputDebugStringA(msg);
+#ifndef _DEBUG
+		OutputDebugStringA(msg);
+#endif
 	}
 	// Create the pipeline state once the shaders are loaded.
 	//auto createPipelineStateTask = (createPSTask && createVSTask).then([this]() {
 
-		static const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+	static const D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -522,10 +561,24 @@ void Sample3DSceneRenderer::StopTracking()
 	m_tracking = false;
 }
 
+void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
+{
+	m_pipelineState = nullptr;
+	m_rootSignature = nullptr;
+	m_commandList = nullptr;
+	m_vertexBuffer = nullptr;
+	m_indexBuffer = nullptr;
+	m_cbvHeap = nullptr;
+	m_constantBuffer = nullptr;
+	m_mappedConstantBuffer = nullptr;
+}
+
 void Sample3DSceneRenderer::OnDeviceLost()
 {
-	/*
+	
 	ReleaseDeviceDependentResources();
+	m_loadingComplete = false;
+	/*
 	m_bDDS_WIC_FLAGGridPicComplete = false;
 	m_bDDS_WIC_FLAGGridPic = false;
 	m_loadingComplete = false;
@@ -640,7 +693,157 @@ void Sample3DSceneRenderer::OnDeviceRestored()
 	
 }
 
+
+// --- Replace the existing Render() with a guarded implementation ---
+// (only the modified function is shown)
+
+bool Sample3DSceneRenderer::Render()
+{
+	// At start of Render(), ensure a valid command list exists and bail gracefully on failure.
+			// Loading is asynchronous. Only draw geometry after it's loaded and required resources are present.
+		if (!m_loadingComplete)
+		{
+			return false;
+		}
+
+		// Make sure we have a command list (lazy-create if needed).
+		HRESULT hrEnsure = EnsureCommandList(m_deviceResources, m_commandList, m_pipelineState.get());
+		if (FAILED(hrEnsure))
+		{
+			char buf[256];
+			sprintf_s(buf, "WARN: EnsureCommandList failed: 0x%08X\n", static_cast<unsigned>(hrEnsure));
+#ifndef _DEBUG
+			OutputDebugStringA(buf);
+#endif
+			return false;
+		}
+
+		// Validate required D3D objects before issuing commands.
+		if (!m_commandList || !m_pipelineState || !m_rootSignature || !m_cbvHeap || !m_constantBuffer)
+		{
+#ifndef _DEBUG
+			OutputDebugStringA("WARN: Render skipped: missing pipeline or resources\n");
+#endif
+			return false;
+		}
+
+		// Ensure we have a render target (RTV) to render into.
+		ID3D12Resource* renderTarget = m_deviceResources->GetRenderTarget();
+		if (renderTarget == nullptr)
+		{
+#ifndef _DEBUG
+			OutputDebugStringA("WARN: Render skipped: render target is null\n");
+#endif
+			return false;
+		}
+
+		// Ensure command allocator is present.
+		auto commandAllocator = m_deviceResources->GetCommandAllocator();
+		if (!commandAllocator)
+		{
+#ifndef _DEBUG
+			OutputDebugStringA("WARN: Render skipped: command allocator is null\n");
+#endif
+			return false;
+		}
+
+		// Wait for GPU, reset allocator and command list.
+		m_deviceResources->WaitForGpu();
+
+		hrEnsure = commandAllocator->Reset();
+		if (FAILED(hrEnsure))
+		{
+			char buf[128];
+			sprintf_s(buf, "ERROR: CommandAllocator->Reset failed: 0x%08X\n", static_cast<unsigned>(hrEnsure));
+#ifndef _DEBUG
+			OutputDebugStringA(buf);
+#endif
+			return false;
+		}
+
+		hrEnsure = m_commandList->Reset(commandAllocator, m_pipelineState.get());
+		if (FAILED(hrEnsure))
+		{
+			char buf[128];
+			sprintf_s(buf, "ERROR: CommandList->Reset failed: 0x%08X\n", static_cast<unsigned>(hrEnsure));
+#ifndef _DEBUG
+			OutputDebugStringA(buf);
+#endif
+			return false;
+		}
+
+		// ... rest of Render unchanged ...
+
+	PIXBeginEvent(m_commandList.get(), 0, L"Draw the cube");
+	{
+		// Set the graphics root signature and descriptor heaps to be used by this frame.
+		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		ID3D12DescriptorHeap* ppHeaps[] = { m_cbvHeap.get() };
+		m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+		// Bind the current frame's constant buffer to the pipeline.
+		CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_cbvHeap->GetGPUDescriptorHandleForHeapStart(), m_deviceResources->GetCurrentFrameIndex(), m_cbvDescriptorSize);
+		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle);
+
+		// Set the viewport and scissor rectangle.
+		D3D12_VIEWPORT viewport = m_deviceResources->GetScreenViewport();
+		m_commandList->RSSetViewports(1, &viewport);
+		m_commandList->RSSetScissorRects(1, &m_scissorRect);
+
+		// Indicate this resource will be in use as a render target.
+		// Guard against null pointer for safety (previous checks should cover this).
+		ID3D12Resource* rt = m_deviceResources->GetRenderTarget();
+		if (!rt)
+		{
+			PIXEndEvent(m_commandList.get());
+			OutputDebugStringA("WARN: Render aborted: GetRenderTarget returned null between checks\n");
+			m_commandList->Close();
+			return false;
+		}
+
+		CD3DX12_RESOURCE_BARRIER renderTargetResourceBarrier =
+			CD3DX12_RESOURCE_BARRIER::Transition(rt, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		m_commandList->ResourceBarrier(1, &renderTargetResourceBarrier);
+
+		// Record drawing commands.
+		D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView = m_deviceResources->GetRenderTargetView();
+		D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_deviceResources->GetDepthStencilView();
+		m_commandList->ClearRenderTargetView(renderTargetView, DirectX::Colors::CornflowerBlue, 0, nullptr);
+		m_commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+		m_commandList->OMSetRenderTargets(1, &renderTargetView, false, &depthStencilView);
+
+		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+		m_commandList->IASetIndexBuffer(&m_indexBufferView);
+		m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+
+		// Indicate that the render target will now be used to present when the command list is done executing.
+		CD3DX12_RESOURCE_BARRIER presentResourceBarrier =
+			CD3DX12_RESOURCE_BARRIER::Transition(rt, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		m_commandList->ResourceBarrier(1, &presentResourceBarrier);
+	}
+	PIXEndEvent(m_commandList.get());
+
+	HRESULT hr = m_commandList->Close();
+	if (FAILED(hr))
+	{
+		char buf[128];
+		sprintf_s(buf, "ERROR: CommandList->Close failed: 0x%08X\n", static_cast<unsigned>(hr));
+#ifndef _DEBUG
+		OutputDebugStringA(buf);
+#endif
+		return false;
+	}
+
+	// Execute the command list.
+	ID3D12CommandList* ppCommandLists[] = { m_commandList.get() };
+	m_deviceResources->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	return true;
+}
 // Renders one frame using the vertex and pixel shaders.
+/*
 bool Sample3DSceneRenderer::Render()
 {
 	// Loading is asynchronous. Only draw geometry after it's loaded.
@@ -709,14 +912,49 @@ bool Sample3DSceneRenderer::Render()
 
 	return true;
 }
+*/
 
+// At start of Clear(), ensure command list exists and is usable.
 void winrt::Hot3dxBlankApp2::Sample3DSceneRenderer::Clear()
 {
+	// Ensure command list exists
+	HRESULT hrEnsure = EnsureCommandList(m_deviceResources, m_commandList, m_pipelineState.get());
+	if (FAILED(hrEnsure) || !m_commandList)
+	{
+#ifndef _DEBUG
+		OutputDebugStringA("WARN: Clear skipped: no command list\n");
+#endif
+		return;
+	}
+
+	// Make sure mapped constant buffer exists (defensive)
+	if (!m_constantBuffer || !m_mappedConstantBuffer)
+	{
+#ifndef _DEBUG
+		OutputDebugStringA("WARN: Clear skipped: constant buffer not ready\n");
+#endif
+		return;
+	}
+
 	PIXBeginEvent(m_commandList.get(), PIX_COLOR_DEFAULT, L"Clear");
 
-	// Record drawing commands.
+	// Guard rendering resources
+	ID3D12Resource* rt = m_deviceResources->GetRenderTarget();
+	if (!rt)
+	{
+		PIXEndEvent(m_commandList.get());
+#ifndef _DEBUG
+		OutputDebugStringA("WARN: Clear aborted: render target null\n");
+#endif
+		// Close command list if open to avoid leaving it recording
+		m_commandList->Close();
+		return;
+	}
+
 	D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView = m_deviceResources->GetRenderTargetView();
 	D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_deviceResources->GetDepthStencilView();
+
+	// Clear only if handles look valid (best-effort).
 	m_commandList->ClearRenderTargetView(renderTargetView, DirectX::Colors::CornflowerBlue, 0, nullptr);
 	m_commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
