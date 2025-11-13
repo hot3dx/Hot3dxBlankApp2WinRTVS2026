@@ -20,7 +20,7 @@ namespace DX
 	};
 
 	// Number of frames that will be queued for rendering. This affects the latency/throughput tradeoff.
-	static const UINT c_frameCount = 3;		// Use triple buffering.
+	inline static const UINT c_frameCount = 3;		// Use triple buffering.
 
 	// Controls all the DirectX device resources.
 	class DeviceResources
@@ -36,6 +36,7 @@ namespace DX
 		void Present();
 		void TestClearAndPresentOnce();
 		void WaitForGpu();
+		void Trim();
 
 		// These methods are used to notify the app that the device was lost or created.
 		void RegisterDeviceNotify(IDeviceNotify* deviceNotify);
@@ -72,11 +73,13 @@ namespace DX
 			return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_DsvHeap->GetCPUDescriptorHandleForHeapStart());
 		}
 
+		void SetCompositionScale(float CompositionScaleX, float CompositionScaleY);
+
 		bool m_isSwapPanelVisible{ false };
 
 		void CreateWindowSizeDependentResources();
 		void HandleDeviceLost();
-
+		
 		
 
 	private:
@@ -124,8 +127,11 @@ namespace DX
 		winrt::Windows::Foundation::Size						m_logicalSize;
 		winrt::Windows::Graphics::Display::DisplayOrientations	m_nativeOrientation{};
 		winrt::Windows::Graphics::Display::DisplayOrientations	m_currentOrientation{};
-		float											m_dpi{ -1.0f };
-
+		float													m_dpi{ -1.0f };
+		float													CompositionScaleX;
+		float													CompositionScaleY;
+		float													m_compositionScaleX;
+		float													m_compositionScaleY;
 		// HDR Support
 		DXGI_COLOR_SPACE_TYPE                           m_colorSpace{ DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 };
 

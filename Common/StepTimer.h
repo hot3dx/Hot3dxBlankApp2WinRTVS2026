@@ -60,10 +60,10 @@ namespace DX
         void SetTargetElapsedSeconds(double targetElapsed) { m_targetElapsedTicks = SecondsToTicks(targetElapsed); }
 
         // Integer format represents time using 10,000,000 ticks per second.
-        static const uint64_t TicksPerSecond = 10000000;
+        inline static const uint64_t TicksPerSecond = 10000000;
 
-        static double TicksToSeconds(uint64_t ticks) { return static_cast<double>(ticks) / TicksPerSecond; }
-        static uint64_t SecondsToTicks(double seconds) { return static_cast<uint64_t>(seconds * TicksPerSecond); }
+        inline static double TicksToSeconds(uint64_t ticks) { return static_cast<double>(ticks) / TicksPerSecond; }
+        inline static uint64_t SecondsToTicks(double seconds) { return static_cast<uint64_t>(seconds * TicksPerSecond); }
 
         // After an intentional timing discontinuity (for instance a blocking IO operation)
         // call this to avoid having the fixed timestep logic attempt a set of catch-up 

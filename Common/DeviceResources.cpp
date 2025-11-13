@@ -1,8 +1,9 @@
 ﻿#include "pch.h"
-
+#include "MainPage.h"
 #include "d3dx12.h"
 #include "DeviceResources.h"
 #include <d3d12.h>
+#include <intsafe.h>
 #include <dxgidebug.h>
 #include <dxgiformat.h>
 #include "DirectXHelper.h"
@@ -24,8 +25,70 @@ using namespace winrt::Windows::Graphics::Display;
 using namespace winrt::Windows::UI::Core;
 using namespace winrt::Windows::UI::Xaml::Controls;
 
+#define LOG_STATUS(isError, fmt, ...) LogStatusImpl(__FILE__, __LINE__, isError, fmt, ##__VA_ARGS__)
+
+// add near top of file (replace previous LogStatus)
+#include <cstdio>
+#include <string>
+// Macro to capture source location automatically
 
 
+inline static void LogStatusImpl(const char* file, int line, bool isError, const char* fmt, ...)
+{
+
+	char msgBuf[1024];
+	va_list ap;
+	va_start(ap, fmt);
+#if defined(_MSC_VER)
+	vsnprintf_s(msgBuf, _countof(msgBuf), _TRUNCATE, fmt, ap);
+#else
+	vsnprintf(msgBuf, sizeof(msgBuf), fmt, ap);
+#endif
+	va_end(ap);
+
+	// Shorten file path to filename
+	std::string fname = file ? file : "unknown";
+	size_t pos = fname.find_last_of("\\/");
+	if (pos != std::string::npos) fname = fname.substr(pos + 1);
+
+	// Build final ANSI/UTF-8 message: "filename(line): message"
+	char finalBuf[1280];
+	snprintf(finalBuf, sizeof(finalBuf), "%s(%d): %s", fname.c_str(), line, msgBuf);
+
+	// Convert to wide string assuming UTF-8 input (use CP_UTF8). Change code page if needed.
+	std::wstring wbuf;
+	int wlen = MultiByteToWideChar(CP_UTF8, 0, finalBuf, -1, nullptr, 0);
+	if (wlen > 0)
+	{
+		wbuf.resize(static_cast<size_t>(wlen - 1));
+		MultiByteToWideChar(CP_UTF8, 0, finalBuf, -1, &wbuf[0], wlen);
+	}
+
+	// Forward to visible status panel when available, else fallback to debug output.
+
+
+	auto page = winrt::Hot3dxBlankApp2::implementation::MainPage::Current();
+	if (page)
+	{
+		auto notifyType = isError
+			? winrt::Hot3dxBlankApp2::implementation::NotifyType::ErrorMessage
+			: winrt::Hot3dxBlankApp2::implementation::NotifyType::StatusMessage;
+
+		// get_self gives access to the implementation instance so we can call the
+		// implementation-only NotifyUser() member that isn't projected on the public type.
+		auto impl = winrt::get_self<winrt::Hot3dxBlankApp2::implementation::MainPage>(page);
+		impl->NotifyUser(winrt::hstring{ wbuf }, notifyType);
+#ifndef _DEBUG
+		OutputDebugStringW((wbuf + L"\n").c_str());
+#endif
+	}
+	else
+	{
+#ifndef _DEBUG
+		OutputDebugStringW((wbuf + L"\n").c_str());
+#endif
+	}
+}
 
 // Local minimal COM interface declaration for ISwapChainPanelNative.
 // This resolves "pointer or reference to incomplete type" errors by providing
@@ -38,37 +101,37 @@ using namespace winrt::Windows::UI::Xaml::Controls;
 
 namespace DisplayMetrics
 {
-	static const bool SupportHighResolutions = false;
-	static const float DpiThreshold = 192.0f;
-	static const float WidthThreshold = 1920.0f;
-	static const float HeightThreshold = 1080.0f;
+	inline static const bool SupportHighResolutions = false;
+	inline static const float DpiThreshold = 192.0f;
+	inline static const float WidthThreshold = 1920.0f;
+	inline static const float HeightThreshold = 1080.0f;
 };
 
 // ScreenRotation constants (unchanged)
 namespace ScreenRotation
 {
-	static const XMFLOAT4X4 Rotation0(
+	inline static const XMFLOAT4X4 Rotation0(
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
 
-	static const XMFLOAT4X4 Rotation90(
+	inline static const XMFLOAT4X4 Rotation90(
 		0.0f, 1.0f, 0.0f, 0.0f,
 		-1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
 
-	static const XMFLOAT4X4 Rotation180(
+	inline static const XMFLOAT4X4 Rotation180(
 		-1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, -1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
 
-	static const XMFLOAT4X4 Rotation270(
+	inline static const XMFLOAT4X4 Rotation270(
 		0.0f, -1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
@@ -101,17 +164,28 @@ DX::DeviceResources::DeviceResources(DXGI_FORMAT backBufferFormat, DXGI_FORMAT d
 
 void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::SwapChainPanel const& panel, winrt::Windows::UI::Core::CoreWindow const& window)
 {
-	auto sender = panel.as<winrt::Windows::UI::Xaml::Controls::SwapChainPanel>();
-	float aw = static_cast<float>(sender.ActualWidth());
-	float ah = static_cast<float>(sender.ActualHeight());
-	float csx = static_cast<float>(sender.CompositionScaleX());
-	float csy = static_cast<float>(sender.CompositionScaleY());
-	char msg[256];
-	sprintf_s(msg, "INFO: SwapChainPanel Loaded ActualWidth=%.2f ActualHeight=%.2f CompScaleX=%.2f CompScaleY=%.2f\n",
-		aw, ah, csx, csy);
-	//OutputDebugStringA(msg);
+    // Must be called on UI thread
+	// Validate UI thread and marshal or bail out if not on UI thread.
+	// Ensure this is called on the UI thread by using the provided CoreWindow's dispatcher.
+	// Do not call CoreApplication::MainView() here (that can trigger C3779 when headers/order make
+	// the function-generic 'auto' return unavailable at this translation unit).
+	auto dispatcher = window.Dispatcher();
+	if (!dispatcher.HasThreadAccess())
+	{
+		LOG_STATUS(true, "SetSwapChainPanel must be called on the UI thread");
+		return;
+	}
+
+    
+        // Caller should marshal to UI thread; fail fast here or assert in debug
+       // Must be called on UI thread
+    
 
 	m_swapChainPanel = panel;
+
+	// update logical size and DPI/rotation
+	float aw = static_cast<float>(panel.ActualWidth());
+	float ah = static_cast<float>(panel.ActualHeight());
 
 	// Prefer the SwapChainPanel measured size for logical size (in DIPs) when available.
 	// Fallback to CoreWindow bounds when panel measurement is not ready.
@@ -131,21 +205,16 @@ void DX::DeviceResources::SetSwapChainPanel(winrt::Windows::UI::Xaml::Controls::
 
 	m_isSwapPanelVisible = true;
 	//CreateWindowSizeDependentResources();
-	if (m_swapChainPanel)
-	{
-		if (m_SwapChain) {
-			// Get the IUnknown for the WinRT SwapChainPanel and query the native interface in a safe winrt way.
-			// Get the WinRT object and convert to a native IUnknown wrapper
+	
+	if (m_SwapChain && m_swapChainPanel)
+		{
 			HRESULT hr = AttachSwapChainToSwapChainPanel(m_swapChainPanel, m_SwapChain.get());
-			DX::ThrowIfFailed(hr);
-
-			sprintf_s(msg, "INFO: Attached swap chain to SwapChainPanel successfully.\n");
-			//OutputDebugStringA(msg);
-
-			TestClearAndPresentOnce();
-
+			if (FAILED(hr))
+			{
+				LOG_STATUS(true, "AttachSwapChainToSwapChainPanel failed: 0x%08X", static_cast<unsigned>(hr));
+			}
 		}
-	}
+	
 }
 
 // Configures resources that don't depend on the Direct3D device.
@@ -190,19 +259,26 @@ if (FAILED(hr))
 {
 	char buf[256];
 	sprintf_s(buf, "WARN: D3D12CreateDevice failed: 0x%08X\n", static_cast<unsigned>(hr));
+#ifndef _DEBUG	
 	OutputDebugStringA(buf);
+#endif
+
 
 	// Try WARP but log result
 	winrt::com_ptr<IDXGIAdapter> WarpAdapter;
 	HRESULT hrEnum = m_DxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&WarpAdapter));
 	sprintf_s(buf, "INFO: EnumWarpAdapter returned: 0x%08X\n", static_cast<unsigned>(hrEnum));
+#ifndef _DEBUG
 	OutputDebugStringA(buf);
+#endif
 
 	if (SUCCEEDED(hrEnum))
 	{
 		HRESULT hrWarp = D3D12CreateDevice(WarpAdapter.get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_D3dDevice));
 		sprintf_s(buf, "INFO: D3D12CreateDevice(WARP) returned: 0x%08X\n", static_cast<unsigned>(hrWarp));
+#ifndef _DEBUG
 		OutputDebugStringA(buf);
+#endif
 		hr = hrWarp;
 	}
 }
@@ -249,9 +325,26 @@ if (m_fenceEvent == nullptr)
 }
 }
 
+void DX::DeviceResources::SetCompositionScale(float CompositionScaleX, float CompositionScaleY)
+{
+	if (m_compositionScaleX != CompositionScaleX ||
+		m_compositionScaleY != CompositionScaleY)
+	{
+		m_compositionScaleX = CompositionScaleX;
+		m_compositionScaleY = CompositionScaleY;
+		CreateWindowSizeDependentResources();
+	}
+}
+
 // These resources need to be recreated every time the window size is changed.
 void DX::DeviceResources::CreateWindowSizeDependentResources()
 {
+#ifndef _DEBUG
+#pragma warning(suppress : 4996)
+	OutputDebugStringA("DeviceResources::CreateWindowSizeDependentResources - begin\n");
+#endif
+	// Suppress noisy warnings in release builds
+	// 
 	// Wait until all previous GPU work is complete.
 	WaitForGpu();
 
@@ -292,14 +385,18 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			char buf[256];
 			sprintf_s(buf, "INFO: Panel composition scale applied: csx=%.2f csy=%.2f -> pixel W=%u H=%u (pre=%u,%u)\n",
 				csx, csy, scaledWidth, scaledHeight, backBufferWidth, backBufferHeight);
-			//OutputDebugStringA(buf);
+#ifndef _DEBUG 
+			OutputDebugStringA(buf);
+#endif
 
 			backBufferWidth = scaledWidth;
 			backBufferHeight = scaledHeight;
 		}
 		catch (...)
 		{
-			//OutputDebugStringA("WARN: Failed to read CompositionScale from SwapChainPanel; using default sizes\n");
+#ifndef _DEBUG
+			OutputDebugStringA("\nline 362 DevRes.cppWARN: Failed to read CompositionScale from SwapChainPanel; using default sizes\n");
+#endif
 		}
 	}
 
@@ -307,7 +404,15 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	{
 		// If the swap chain already exists, resize it.
 		HRESULT hrResize = m_SwapChain->ResizeBuffers(c_frameCount, backBufferWidth, backBufferHeight, m_backBufferFormat, 0);
-
+		if (hrResize != S_OK)
+		{
+			char buf[256];
+			sprintf_s(buf, "\nINFO: SwapChain ResizeBuffers W=%u H=%u hr=0x%08X\n",
+				backBufferWidth, backBufferHeight, static_cast<unsigned>(hrResize));
+#ifndef _DEBUG
+			OutputDebugStringA(buf);
+#endif
+		}
 		if (hrResize == DXGI_ERROR_DEVICE_REMOVED || hrResize == DXGI_ERROR_DEVICE_RESET)
 		{
 			// If the device was removed for any reason, a new device and swap chain will need to be created.
@@ -355,11 +460,15 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 					char buf[256];
 					sprintf_s(buf, "INFO: SwapChainDesc Width=%u Height=%u Buffers=%u Format=%u SwapEffect=%u\n",
 						desc.Width, desc.Height, desc.BufferCount, desc.Format, desc.SwapEffect);
-					//OutputDebugStringA(buf);
+#ifndef _DEBUG
+					OutputDebugStringA(buf);
+#endif
 				}
 				else
 				{
-					//OutputDebugStringA("WARN: Failed to get SwapChainDesc1\n");
+#ifndef _DEBUG
+					OutputDebugStringA("WARN: Failed to get SwapChainDesc1\n");
+#endif
 				}
 
 				// Confirm GetBuffer / RTV creation
@@ -369,12 +478,16 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 					HRESULT hr = m_SwapChain->GetBuffer(n, IID_PPV_ARGS(&buf));
 					char bufMsg[128];
 					sprintf_s(bufMsg, "INFO: GetBuffer(%u) hr=%08X ptr=%p\n", n, static_cast<unsigned>(hr), static_cast<void*>(buf.get()));
-					//OutputDebugStringA(bufMsg);
+#ifndef _DEBUG
+					OutputDebugStringA(bufMsg);
+#endif
 				}
 			}
 			else
 			{
-				//OutputDebugStringA("ERROR: m_SwapChain is null after creation\n");
+#ifndef _DEBUG
+				OutputDebugStringA("ERROR: m_SwapChain is null after creation\n");
+#endif
 			}
 		}
 	}
@@ -391,7 +504,20 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 				HRESULT hrQ = S_OK;
 			});
 		*/
-		
+		// NEW: Attach swap chain to the SwapChainPanel if available
+		if (m_swapChainPanel && m_SwapChain)
+		{
+			HRESULT hr = AttachSwapChainToSwapChainPanel(m_swapChainPanel, m_SwapChain.get());
+			if (FAILED(hr))
+			{
+				// optional: log via your LogStatusImpl or OutputDebugString
+				char buf[256];
+				sprintf_s(buf, "WARN: AttachSwapChainToSwapChainPanel failed: 0x%08X\n", static_cast<unsigned>(hr));
+#ifndef _DEBUG
+				OutputDebugStringA(buf);
+#endif
+			}
+		}
 		
 	
 
@@ -432,7 +558,9 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 	{
 		char buf[128];
 		sprintf_s(buf, "ERROR: IDXGISwapChain::SetRotation FAILED: %08X\n", static_cast<unsigned>(hrRotate));
-		//OutputDebugStringA(buf);
+#ifndef _DEBUG
+		OutputDebugStringA(buf);
+#endif
 	}
 	DX::ThrowIfFailed(hrRotate);
 
@@ -487,8 +615,81 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 
 	// Set the 3D rendering viewport to target the entire window.
 	m_screenViewport = { 0.0f, 0.0f, m_d3dRenderTargetSize.Width, m_d3dRenderTargetSize.Height, 0.0f, 1.0f };
+#ifndef _DEBUG
+	OutputDebugStringA("DeviceResources::CreateWindowSizeDependentResources - end\n");
+#endif // !_DEBUG
+
+}
+void DX::DeviceResources::HandleDeviceLost()
+{
+	// Ensure any GPU work is finished before we release resources.
+	// This prevents final-release while GPU still references resources.
+	try
+	{
+		if (m_CommandQueue && m_Fence && m_fenceEvent)
+		{
+			// Signal and wait for GPU to finish outstanding work.
+			WaitForGpu();
+		}
+	}
+	catch (...)
+	{
+		// Best-effort — continue with cleanup even if WaitForGpu fails.
+	}
+
+	if (m_deviceNotify)
+	{
+		m_deviceNotify->OnDeviceLost();
+	}
+
+	// Reset command allocators safely.
+	for (UINT n = 0; n < c_frameCount; n++)
+	{
+		if (m_CommandAllocators[n])
+		{
+			// Reset may fail if allocator is already in a bad state; ignore failures here.
+			HRESULT hr = m_CommandAllocators[n]->Reset();
+			(void)hr;
+		}
+		m_RenderTargets[n] = nullptr;
+	}
+
+	// Release size-dependent and core D3D objects in a deterministic order.
+	m_DepthStencil = nullptr;
+
+	// Make sure command queue is flushed and released after WaitForGpu above.
+	m_CommandQueue = nullptr;
+
+	m_Fence = nullptr;
+	m_RtvHeap = nullptr;
+	m_DsvHeap = nullptr;
+
+	// Release swap chain and device last.
+	m_SwapChain = nullptr;
+	m_D3dDevice = nullptr;
+	m_DxgiFactory = nullptr;
+
+#ifdef _DEBUG
+	{
+		winrt::com_ptr<IDXGIDebug1> dxgiDebug;
+		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+		{
+			dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+		}
+	}
+#endif
+
+	// Recreate device and window-size dependent resources.
+	CreateDeviceResources();
+	CreateWindowSizeDependentResources();
+
+	if (m_deviceNotify)
+	{
+		m_deviceNotify->OnDeviceRestored();
+	}
 }
 
+/*
 void DX::DeviceResources::HandleDeviceLost()
 {
 
@@ -532,7 +733,7 @@ void DX::DeviceResources::HandleDeviceLost()
 		}
 	
 }
-
+*/
 // Determine the dimensions of the render target and whether it will be scaled down.
 void DX::DeviceResources::UpdateRenderTargetSize()
 {
@@ -649,18 +850,26 @@ void DX::DeviceResources::Present()
 		char buf[128];
 		sprintf_s(buf, "INFO: SwapChain::Present returned 0x%08X CurrentBackBufferIndex=%u\n",
 			static_cast<unsigned>(hr), m_SwapChain ? m_SwapChain->GetCurrentBackBufferIndex() : 0xFFFFFFFF);
-		//OutputDebugStringA(buf);
+#ifndef _DEBUG
+		OutputDebugStringA(buf);
+#endif
 	}
 
 	if (FAILED(hr))
 	{
-		//OutputDebugStringA("ERROR: IDXGISwapChain::Present FAILED: ");
+#ifndef _DEBUG
+		OutputDebugStringA("ERROR: IDXGISwapChain::Present FAILED: ");
+#endif
 		char buf[64]; sprintf_s(buf, "%08X\n", static_cast<unsigned>(hr));
-		//OutputDebugStringA(buf);
+#ifndef _DEBUG
+		OutputDebugStringA(buf);
+#endif
 	}
 	else
 	{
-		//OutputDebugStringA("INFO: Present OK\n");
+#ifndef _DEBUG
+		OutputDebugStringA("INFO: Present OK\n");
+#endif
 	}
 
 	if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
@@ -699,7 +908,14 @@ void DX::DeviceResources::TestClearAndPresentOnce()
 	DX::ThrowIfFailed(commandList->Close());
 	ID3D12CommandList* lists[] = { commandList.get() };
 	m_CommandQueue->ExecuteCommandLists(1, lists);
-
+	const char* file = "\nTestClearAndPresentOnce";
+#ifndef _DEBUG
+	OutputDebugStringA("\nOutputDebugString begin\n");
+#endif
+	LogStatusImpl(file, 815, false, " success\n");
+#ifndef _DEBUG
+	OutputDebugStringA("\nOutputDebugString end\n");
+#endif
 	// Present and wait so we see the result
 	//OutputDebugStringA("INFO: TestClearAndPresentOnce - calling Present()\n");
 	Present();
@@ -709,13 +925,62 @@ void DX::DeviceResources::TestClearAndPresentOnce()
 // Wait for pending GPU work to complete.
 void DX::DeviceResources::WaitForGpu()
 {
-	if (m_Fence)
+#ifndef _DEBUG
+OutputDebugStringA("DeviceResources::WaitForGpu - begin\n");
+#endif
+	// Schedule a Signal command in the GPU queue.
+
+	if (m_Fence && m_CommandQueue)
 	{
 		DX::ThrowIfFailed(m_CommandQueue->Signal(m_Fence.get(), m_fenceValues[m_currentFrame]));
 		DX::ThrowIfFailed(m_Fence->SetEventOnCompletion(m_fenceValues[m_currentFrame], m_fenceEvent));
 		WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
 		m_fenceValues[m_currentFrame]++;
 	}
+#ifndef _DEBUG
+	OutputDebugStringA("DeviceResources::WaitForGpu - end\n");
+#endif
+}
+
+void DX::DeviceResources::Trim()
+{
+#ifndef _DEBUG
+	OutputDebugStringA("DeviceResources::Trim - begin\n");
+#endif
+	winrt::com_ptr<IDXGIDevice3> dxgiDevice;
+	m_D3dDevice.as(dxgiDevice);
+	
+		dxgiDevice->Trim();
+	
+
+	// Best-effort: stop GPU work and release large transient resources.
+
+	try
+	{
+		// Ensure GPU is idle before releasing resources.
+		WaitForGpu();
+	}
+	catch (...)
+	{
+#ifndef _DEBUG
+		OutputDebugStringA("DeviceResources::Trim - WaitForGpu threw\n");
+#endif
+	}
+
+	// Release size-dependent resources but keep device & factory alive.
+	for (UINT n = 0; n < c_frameCount; n++)
+	{
+		m_RenderTargets[n] = nullptr;
+	}
+	m_DepthStencil = nullptr;
+
+	// Optionally release descriptor heaps to further free memory (they will be recreated later)
+	// Note: recreating descriptor heaps is cheap relative to textures/buffers.
+	m_RtvHeap = nullptr;
+	m_DsvHeap = nullptr;
+#ifndef _DEBUG
+	OutputDebugStringA("DeviceResources::Trim - released render targets, depth stencil and heaps\n");
+#endif
 }
 
 void DX::DeviceResources::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
@@ -811,60 +1076,16 @@ void DX::DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)
 			break;
 		}
 	}
-
+	const char* file = "adapter is a success";
+#ifndef _DEBUG
+	OutputDebugStringA("\nOutputDebugString begin\n");
+#endif
+	LogStatusImpl(file, 815, false, "adapter is a success");
+#ifndef _DEBUG
+	OutputDebugStringA("\nOutputDebugString end\n");
+#endif
 	*ppAdapter = adapter;
 }
 
-// add near top of file (replace previous LogStatus)
-#include <cstdio>
-#include <string>
-#include "MainPage.h"
-// Macro to capture source location automatically
-#define LOG_STATUS(isError, fmt, ...) LogStatusImpl(__FILE__, __LINE__, isError, fmt, ##__VA_ARGS__)
 
-static void LogStatusImpl(const char* file, int line, bool isError, const char* fmt, ...)
-{
-
-	char msgBuf[1024];
-	va_list ap;
-	va_start(ap, fmt);
-#if defined(_MSC_VER)
-	vsnprintf_s(msgBuf, _countof(msgBuf), _TRUNCATE, fmt, ap);
-#else
-	vsnprintf(msgBuf, sizeof(msgBuf), fmt, ap);
-#endif
-	va_end(ap);
-
-	// Shorten file path to filename
-	std::string fname = file ? file : "unknown";
-	size_t pos = fname.find_last_of("\\/");
-	if (pos != std::string::npos) fname = fname.substr(pos + 1);
-
-	// Build final ANSI/UTF-8 message: "filename(line): message"
-	char finalBuf[1280];
-	snprintf(finalBuf, sizeof(finalBuf), "%s(%d): %s", fname.c_str(), line, msgBuf);
-
-	// Convert to wide string assuming UTF-8 input (use CP_UTF8). Change code page if needed.
-	std::wstring wbuf;
-	int wlen = MultiByteToWideChar(CP_UTF8, 0, finalBuf, -1, nullptr, 0);
-	if (wlen > 0)
-	{
-		wbuf.resize(static_cast<size_t>(wlen - 1));
-		MultiByteToWideChar(CP_UTF8, 0, finalBuf, -1, &wbuf[0], wlen);
-	}
-
-	// Forward to visible status panel when available, else fallback to debug output.
-	//winrt::Hot3dxBlankApp2::implementation::MainPage::Current
-	
-	if(winrt::Hot3dxBlankApp2::implementation::MainPage::Current){
-	   auto notifyType = isError ? winrt::Hot3dxBlankApp2::implementation::NotifyType::ErrorMessage : winrt::Hot3dxBlankApp2::implementation::NotifyType::StatusMessage;
-	   winrt::Hot3dxBlankApp2::implementation::MainPage::Current->NotifyUser(winrt::hstring{wbuf}, notifyType);
-	}
-	else
-	{
-#ifndef _DEBUG
-		OutputDebugStringW((wbuf + L"\n").c_str());
-#endif	
-	}
-}
 
