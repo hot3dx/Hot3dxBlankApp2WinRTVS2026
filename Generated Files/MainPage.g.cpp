@@ -10,4 +10,16 @@ WINRT_EXPORT namespace winrt::Hot3dxBlankApp2
         MainPage(make<Hot3dxBlankApp2::implementation::MainPage>())
     {
     }
+    hstring MainPage::FEATURE_NAME()
+    {
+        return Hot3dxBlankApp2::implementation::MainPage::FEATURE_NAME();
+    }
+    winrt::Windows::Foundation::Collections::IVector<winrt::Hot3dxBlankApp2::ScenarioInfo> MainPage::scenarios2()
+    {
+        return Hot3dxBlankApp2::implementation::MainPage::scenarios2();
+    }
+    winrt::Hot3dxBlankApp2::MainPage MainPage::Current()
+    {
+        return Hot3dxBlankApp2::implementation::MainPage::Current();
+    }
 }

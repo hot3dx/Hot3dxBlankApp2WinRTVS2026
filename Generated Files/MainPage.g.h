@@ -36,7 +36,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
 namespace winrt::Hot3dxBlankApp2::factory_implementation
 {
     template <typename D, typename T, typename... I>
-    struct WINRT_IMPL_EMPTY_BASES MainPageT : implements<D, winrt::Windows::Foundation::IActivationFactory, I...>
+    struct WINRT_IMPL_EMPTY_BASES MainPageT : implements<D, winrt::Windows::Foundation::IActivationFactory, winrt::Hot3dxBlankApp2::IMainPageStatics, I...>
     {
         using instance_type = Hot3dxBlankApp2::MainPage;
 
@@ -47,6 +47,18 @@ namespace winrt::Hot3dxBlankApp2::factory_implementation
         auto ActivateInstance() const
         {
             return make<T>();
+        }
+        auto FEATURE_NAME()
+        {
+            return T::FEATURE_NAME();
+        }
+        auto scenarios2()
+        {
+            return T::scenarios2();
+        }
+        auto Current()
+        {
+            return T::Current();
         }
     };
 }

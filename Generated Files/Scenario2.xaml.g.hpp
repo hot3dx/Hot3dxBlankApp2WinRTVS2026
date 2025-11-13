@@ -32,9 +32,25 @@ namespace winrt::Hot3dxBlankApp2::implementation
         }
     }
 
-    template <typename D, typename... I>
-    void Scenario2T<D, I...>::Connect(int32_t, IInspectable const&)
+    template <typename D, typename ... I>
+    void Scenario2T<D, I...>::Connect(int32_t connectionId, IInspectable const& target)
     {
+        switch (connectionId)
+        {
+        case 2:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::CheckBox>();
+                this->LaunchAtSize(targetElement);
+                auto weakThis = ::winrt::make_weak<class_type>(*this);
+                targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
+                    if (auto t = weakThis.get())
+                    {
+                        ::winrt::get_self<D>(t)->LaunchAtSize_Click(p0, p1);
+                    }
+                });
+            }
+            break;
+        }
         _contentLoaded = true;
     }
 

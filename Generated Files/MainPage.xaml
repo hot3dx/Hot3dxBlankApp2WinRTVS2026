@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="Hot3dxBlankApp2"
+    xmlns:local="using:Hot3dxBlankApp2"
     mc:Ignorable="d">
 
     <!-- Left Side Controls -->
@@ -35,21 +35,20 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <SplitView x:ConnectionId='4' x:Name="Splitter" OpenPaneLength="100" MinHeight="700" Width="500" HorizontalAlignment="Right" Margin="0,0,0,0" 
+                <SplitView x:ConnectionId='6' x:Name="Splitter" OpenPaneLength="100" MinHeight="700" Width="500" HorizontalAlignment="Right" Margin="0,0,0,0" 
            IsPaneOpen="True" Grid.Row="2" DisplayMode="Inline">
                     <SplitView.Pane>
                         <RelativePanel Height="Auto">
-                            <Button x:ConnectionId='10' x:Name="myButton" Margin="10,50,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"                            >Click Me 1</Button>
-                            <Button x:ConnectionId='11' x:Name="myButton2" Margin="10,100,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"                            >Click Me 2</Button>
-
-                            <TextBlock x:ConnectionId='12' x:Name="Kubed3DHot3dxMaker3DX12" Text="Control Menu" Style="{StaticResource SampleHeaderTextStyle}" TextWrapping="Wrap" Margin="2,10,0,0"/>
+                            
+                            <TextBlock x:ConnectionId='12' x:Name="Hot3dxBlankApp2" Text=" Scenario Menu" Style="{StaticResource SampleHeaderTextStyle}" TextWrapping="Wrap" Width="98" FontWeight="Bold"/>
                             <!-- Provide an AutomationProperties.Name for a list to a screen reader. A shipping app would localize this. -->
                             <ListBox x:ConnectionId='13' x:Name="ScenarioControl"                                                     AutomationProperties.Name="Scenarios"
- SelectionMode="Single" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0"
- VerticalAlignment="Top" RelativePanel.Below="Kubed3DHot3dxMaker3DX12" Margin="0,0,0,0" RelativePanel.Above="FooterPanel">
+                               SelectionMode="Single" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0"
+                               VerticalAlignment="Top" RelativePanel.Below="Hot3dxBlankApp2" Margin="0,0,0,0" RelativePanel.Above="FooterPanel">
                                 <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={StaticResource ScenarioConverter}}" FontSize="10" FontStyle="Italic" FontFamily="Arial"/>
+                                    <DataTemplate                                >
+                                        <TextBlock x:ConnectionId='21'                       Padding="8" />
+                                        <!--TextBlock Text="{Binding Converter={StaticResource ScenarioConverter}}" FontSize="10" FontStyle="Italic" FontFamily="Arial"/-->
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -59,48 +58,54 @@
                    RelativePanel.Above="LinksPanel" Margin="10,10,0,0"
                    TextWrapping="Wrap"/>
                                 <StackPanel x:ConnectionId='16' x:Name="LinksPanel" Orientation="Horizontal" Margin="10,0,0,10" Height="50">
-                                    <HyperlinkButton x:ConnectionId='17' Content="Trademarks" Tag="http://github.com/hot3dx"
-                                             FontSize="12" Style="{StaticResource HyperlinkStyle}" />
+                                    <HyperlinkButton x:ConnectionId='17' x:Name="Trademarks" Margin="7,-35,0,0" Content="TradeMarks" Tag="https://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/blob/main/Assets/Square256x256.png"
+                                                                       FontSize="12" FontWeight="Bold" Style="{StaticResource HyperlinkStyle}" />
+                                    <TextBlock Text="|"  Style="{StaticResource SeparatorStyle}" VerticalAlignment="Top" />
+                                    <HyperlinkButton x:ConnectionId='18' x:Name="SourceCode" Margin="-73,0,0,0" Content="Source Code" Tag="http://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026"
+                                                             FontSize="12" FontWeight="Bold" Style="{StaticResource HyperlinkStyle}" />
                                     <TextBlock Text="|"  Style="{StaticResource SeparatorStyle}" VerticalAlignment="Center" />
-                                    <HyperlinkButton x:ConnectionId='18' Margin="-50,25,0,0" x:Name="PrivacyLink" Content="Privacy"
-                                     Tag="http://privacy.microsoft.com"                      
-                                     FontSize="12" Style="{StaticResource HyperlinkStyle}"/>
+                                    <HyperlinkButton x:ConnectionId='19' Margin="-77,35,0,0" x:Name="PrivacyLink" Content="Privacy Policy"
+                                     Tag="http://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/PrivacyPolicy.md"                      
+                                     FontSize="12" FontWeight="Bold" Style="{StaticResource HyperlinkStyle}"/>
                                 </StackPanel>
                             </StackPanel>
                         </RelativePanel>
                     </SplitView.Pane>
                     <RelativePanel Grid.Row="1">
-                        <Frame x:ConnectionId='20' x:Name="ScenarioFrame"  Margin="0,5,0,0" RelativePanel.AlignTopWithPanel="True" RelativePanel.Above="StatusPanel" Background="GreenYellow"
+                        <Frame x:ConnectionId='22' x:Name="ScenarioFrame"  Margin="0,5,0,0" RelativePanel.AlignTopWithPanel="True" RelativePanel.Above="StatusPanel" Background="GreenYellow"
                RelativePanel.AlignRightWithPanel="True" RelativePanel.AlignLeftWithPanel="True"/>
-                        <StackPanel x:ConnectionId='21' x:Name="StatusPanel"  Orientation="Vertical"
+                        <StackPanel x:ConnectionId='23' x:Name="StatusPanel"  Orientation="Vertical"
                     RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignRightWithPanel="True" 
                     RelativePanel.AlignLeftWithPanel="True">
                             <!--TextBlock x:Name="StatusLabel" Margin="0,0,0,0" TextWrapping="Wrap" Text="Status:" /-->
-                            <Border x:ConnectionId='22' x:Name="StatusBorder" Margin="0,-105,0,0" Visibility="Visible" VerticalAlignment="Top">
+                            <Border x:ConnectionId='24' x:Name="StatusBorder" Margin="0,-105,0,0" Visibility="Visible" VerticalAlignment="Top">
                                 <ScrollViewer VerticalScrollMode="Enabled"  VerticalScrollBarVisibility="Visible" MaxHeight="105">
                                     <!-- Use LiveSetting to enable screen readers to announce the status update. -->
-                                    <TextBlock x:ConnectionId='23' x:Name="StatusBlock" FontWeight="Bold" AutomationProperties.LiveSetting="Assertive"  
+                                    <TextBlock x:ConnectionId='25' x:Name="StatusBlock" FontWeight="Bold" AutomationProperties.LiveSetting="Assertive"  
                    MaxWidth="{Binding ElementName=Splitter, Path=ActualWidth}" Margin="10,0,10,0" TextWrapping="Wrap"  VerticalAlignment="Top" Height="105"/>
                                 </ScrollViewer>
                             </Border>
                         </StackPanel>
                     </RelativePanel>
                 </SplitView>
-                <StackPanel x:ConnectionId='5' x:Name="HeaderPanel1" Orientation="Horizontal">
+                <StackPanel x:ConnectionId='7' x:Name="HeaderPanel1" Orientation="Horizontal">
                     <Border Background="{ThemeResource SystemControlBackgroundChromeMediumBrush}" Grid.Row="1">
-                        <ToggleButton x:ConnectionId='8' Style="{StaticResource SymbolButton}"                            VerticalAlignment="Top" Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
+                        <ToggleButton x:ConnectionId='10' Style="{StaticResource SymbolButton}"                            VerticalAlignment="Top" Foreground="{ThemeResource ApplicationForegroundThemeBrush}">
                             <ToggleButton.Content>
-                                <FontIcon x:ConnectionId='9' x:Name="Hamburger" FontFamily="Segoe MDL2 Assets" Glyph="&#xE700;" Margin="0,15,0,0"/>
+                                <FontIcon x:ConnectionId='11' x:Name="Hamburger" FontFamily="Segoe MDL2 Assets" Glyph="&#xE700;" Margin="0,15,0,0"/>
                             </ToggleButton.Content>
                         </ToggleButton>
                     </Border>
                     <!-- Use AutomationProperties.AccessibilityView to let a screen reader know that the image is purely decorative.
  (If the Image conveyed useful information we'd not use AccessibilityView, but instead provide a localized 
  name for the Image to convey its purpose.) -->
-                    <Image x:ConnectionId='6' x:Name="Hot3dxLogo" Stretch="None" Source="Assets/MakerC1.ico" Margin="0,15,0,0" AutomationProperties.AccessibilityView="Raw" />
-                    <TextBlock x:ConnectionId='7' x:Name="Header" Text="Hot3dx Freehand DirectX 12 Xaml Drawing Tools" Style="{StaticResource TagLineTextStyle}" Margin="50,15,0,0" />
+                    <Image x:ConnectionId='8' x:Name="Hot3dxLogo" Stretch="None" Source="Assets/MakerC1.ico" Margin="0,15,0,0" AutomationProperties.AccessibilityView="Raw" />
+                    <TextBlock x:ConnectionId='9' x:Name="Header" Text="Hot3dx DirectX 12 Xaml C/C++ WinRT Sample" Style="{StaticResource TagLineTextStyle}" Margin="50,15,0,0" FontSize="16" FontWeight="Bold" />
                 </StackPanel>
             </Grid>
+            <Button x:ConnectionId='4' x:Name="myButton" Margin="10,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"                             Background="#FFFFFF03" Foreground="#FF131300" FontWeight="Bold">Click Me 1</Button>
+            <Button x:ConnectionId='5' x:Name="myButton2" Margin="10,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"                             Background="#FFFFFF03" Foreground="#FF101000" FontWeight="Bold">Click Me 2</Button>
+
         </StackPanel>
 
 

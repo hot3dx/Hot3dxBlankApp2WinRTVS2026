@@ -207,7 +207,6 @@
     <None Include="packages.config" />
     <None Include="PrivacyPolicy.md" />
     <None Include="README.md" />
-    <None Include="scripts\create_vs_offline.cmd" />
     <Page Include="MainPage.xaml">
       <SubType>Designer</SubType>
     </Page>

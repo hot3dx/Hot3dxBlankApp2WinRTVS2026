@@ -191,7 +191,6 @@
     <None Include="README.md" />
     <None Include="PrivacyPolicy.md" />
     <None Include="Package.StoreAssociation.xml" />
-    <None Include="scripts\create_vs_offline.cmd" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">

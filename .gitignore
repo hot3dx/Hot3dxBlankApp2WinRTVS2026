@@ -1,0 +1,33 @@
+# Visual Studio / VS2022+ defaults
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+x64/
+x86
+Generated Files/winrt/
+**/winrt/**
+# VS generated files and caches
+ipch/
+*.aps
+*.pch
+*.iobj
+*.ipdb
+*.pdb
+*.ilk
+
+# NuGet
+packages/
+*.nupkg
+.nuget/
+
+# Rider/IDE
+.idea/
+
+# Others
+*.log

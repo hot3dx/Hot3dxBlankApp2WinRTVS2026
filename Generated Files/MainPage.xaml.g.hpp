@@ -51,48 +51,6 @@ namespace winrt::Hot3dxBlankApp2::implementation
             break;
         case 4:
             {
-                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::SplitView>();
-                this->Splitter(targetElement);
-            }
-            break;
-        case 5:
-            {
-                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::StackPanel>();
-                this->HeaderPanel1(targetElement);
-            }
-            break;
-        case 6:
-            {
-                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Image>();
-                this->Hot3dxLogo(targetElement);
-            }
-            break;
-        case 7:
-            {
-                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
-                this->Header(targetElement);
-            }
-            break;
-        case 8:
-            {
-                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Primitives::ToggleButton>();
-                auto weakThis = ::winrt::make_weak<class_type>(*this);
-                targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
-                    if (auto t = weakThis.get())
-                    {
-                        ::winrt::get_self<D>(t)->ToggleButton_Click(p0, p1);
-                    }
-                });
-            }
-            break;
-        case 9:
-            {
-                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::FontIcon>();
-                this->Hamburger(targetElement);
-            }
-            break;
-        case 10:
-            {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Button>();
                 this->myButton(targetElement);
                 auto weakThis = ::winrt::make_weak<class_type>(*this);
@@ -104,7 +62,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
-        case 11:
+        case 5:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Button>();
                 this->myButton2(targetElement);
@@ -117,10 +75,52 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
+        case 6:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::SplitView>();
+                this->Splitter(targetElement);
+            }
+            break;
+        case 7:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::StackPanel>();
+                this->HeaderPanel1(targetElement);
+            }
+            break;
+        case 8:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Image>();
+                this->Hot3dxLogo(targetElement);
+            }
+            break;
+        case 9:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
+                this->Header(targetElement);
+            }
+            break;
+        case 10:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Primitives::ToggleButton>();
+                auto weakThis = ::winrt::make_weak<class_type>(*this);
+                targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
+                    if (auto t = weakThis.get())
+                    {
+                        ::winrt::get_self<D>(t)->ToggleButton_Click(p0, p1);
+                    }
+                });
+            }
+            break;
+        case 11:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::FontIcon>();
+                this->Hamburger(targetElement);
+            }
+            break;
         case 12:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
-                this->Kubed3DHot3dxMaker3DX12(targetElement);
+                this->Hot3dxBlankApp2(targetElement);
             }
             break;
         case 13:
@@ -157,6 +157,20 @@ namespace winrt::Hot3dxBlankApp2::implementation
         case 17:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::HyperlinkButton>();
+                this->Trademarks(targetElement);
+                auto weakThis = ::winrt::make_weak<class_type>(*this);
+                targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
+                    if (auto t = weakThis.get())
+                    {
+                        ::winrt::get_self<D>(t)->FooterTrademarks_Click(p0, p1);
+                    }
+                });
+            }
+            break;
+        case 18:
+            {
+                auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::HyperlinkButton>();
+                this->SourceCode(targetElement);
                 auto weakThis = ::winrt::make_weak<class_type>(*this);
                 targetElement.Click([weakThis](::winrt::Windows::Foundation::IInspectable const& p0, ::winrt::Windows::UI::Xaml::RoutedEventArgs const& p1){
                     if (auto t = weakThis.get())
@@ -166,7 +180,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
-        case 18:
+        case 19:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::HyperlinkButton>();
                 this->PrivacyLink(targetElement);
@@ -179,25 +193,25 @@ namespace winrt::Hot3dxBlankApp2::implementation
                 });
             }
             break;
-        case 20:
+        case 22:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Frame>();
                 this->ScenarioFrame(targetElement);
             }
             break;
-        case 21:
+        case 23:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::StackPanel>();
                 this->StatusPanel(targetElement);
             }
             break;
-        case 22:
+        case 24:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::Border>();
                 this->StatusBorder(targetElement);
             }
             break;
-        case 23:
+        case 25:
             {
                 auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
                 this->StatusBlock(targetElement);
@@ -219,12 +233,110 @@ namespace winrt::Hot3dxBlankApp2::implementation
         throw ::winrt::hresult_invalid_argument { L"No unloadable objects." };
     }
 
-
     template <typename D, typename... I>
-    IComponentConnector MainPageT<D, I...>::GetBindingConnector(int32_t, IInspectable const&)
+    IComponentConnector MainPageT<D, I...>::GetBindingConnector(int32_t connectionId, IInspectable const& target)
     {
-        return nullptr;
+        ::winrt::com_ptr<::winrt::Hot3dxBlankApp2::implementation::XamlBindings> bindings;
+        switch (connectionId)
+        {
+            case 21: // MainPage.xaml line 50
+                {
+                    auto element21 = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
+                    auto objBindings = std::make_unique<MainPage_obj21_Bindings>();
+                    objBindings->SetDataRoot(element21.DataContext());
+                    bindings = ::winrt::make_self<::winrt::Hot3dxBlankApp2::implementation::XamlBindings>(std::move(objBindings));
+                    bindings->SubscribeForDataContextChanged(element21);
+                    DataTemplate::SetExtensionInstance(element21, bindings.as<::winrt::Windows::UI::Xaml::IDataTemplateExtension>());
+                    XamlBindingHelper::SetDataTemplateComponent(element21, bindings.as<::winrt::Windows::UI::Xaml::Markup::IDataTemplateComponent>());
+                }
+                break;
+        }
+        return bindings ? bindings.as<::winrt::Windows::UI::Xaml::Markup::IComponentConnector>() : nullptr;
     }
+
+    template <typename D, typename ... I>
+    struct MainPageT<D, I...>::MainPage_obj21_Bindings
+        : public ::winrt::Hot3dxBlankApp2::implementation::ValueTypeXamlBindings<::winrt::Hot3dxBlankApp2::ScenarioInfo, ::winrt::Hot3dxBlankApp2::implementation::XamlBindingTrackingBase>
+{
+        MainPage_obj21_Bindings()
+        {
+        }
+
+        void Connect(int32_t connectionId, IInspectable const& target) override
+        {
+            switch(connectionId)
+            {
+            case 21: // MainPage.xaml line 50
+                {
+                    auto targetElement = target.as<::winrt::Windows::UI::Xaml::Controls::TextBlock>();
+                    obj21 = targetElement;
+                }
+                break;
+            }
+        }
+
+        void DisconnectUnloadedObject(int connectionId) override
+        {
+            throw ::winrt::hresult_invalid_argument { L"No unloadable elements to disconnect." };
+        }
+
+        void Recycle() override
+        {
+        }
+
+        void ProcessBindings(IInspectable const& item, int itemIndex, int phase, int32_t& nextPhase)
+        {
+            nextPhase = -1;
+            switch (phase)
+            {
+            case 0:
+                {
+                    nextPhase = -1;
+                    SetDataRoot(item);
+                    if (_dataContextChangedToken.value != 0)
+                    {
+                        this->obj21.get().DataContextChanged(_dataContextChangedToken);
+                        _dataContextChangedToken.value = 0;
+                    }
+                    _isInitialized = true;
+                 }
+                 break;
+            }
+            Update_(::winrt::unbox_value<::winrt::Hot3dxBlankApp2::ScenarioInfo>(item) , 1 << phase);
+        }
+
+
+    private:
+        // Fields for each control that has bindings.
+        ::winrt::weak_ref<::winrt::Windows::UI::Xaml::Controls::TextBlock> obj21;
+
+        // Update methods for each path node used in binding steps.
+
+        void Update_(::winrt::Hot3dxBlankApp2::ScenarioInfo obj, int32_t phase)
+        {
+                if ((phase & (NOT_PHASED | (1 << 0))) != 0)
+                {
+                    Update_Title(obj.Title, phase);
+                }
+        }
+
+        void Update_Title(::winrt::hstring obj, int32_t phase)
+        {
+            if((phase & ((1 << 0) | NOT_PHASED )) != 0)
+            {
+                // MainPage.xaml line 50
+                if (obj21)
+                {
+                    Set_Windows_UI_Xaml_Controls_TextBlock_Text(this->obj21.get(), obj);
+                }
+            }
+        }
+
+        static void Set_Windows_UI_Xaml_Controls_TextBlock_Text(::winrt::Windows::UI::Xaml::Controls::TextBlock const& obj, ::winrt::hstring const& value)
+        {
+            obj.Text(value);
+        }
+    }; 
 
     template struct MainPageT<struct MainPage>;
 }
