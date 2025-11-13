@@ -1,15 +1,21 @@
 ﻿#pragma once
 
-#include <Unknwn.h>
+#include <windows.h>
+#include <unknwn.h>
+#include <restrictederrorinfo.h>
+#include <hstring.h>
 #include <Unknwnbase.h>
 // Add this before any #include <winrt/...> lines
 #include <winrt/base.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.UI.Xaml.h>
+#include "winrt/Windows.UI.Xaml.Automation.Peers.h"
 #include <winrt/Windows.UI.Xaml.Controls.h>
 #include <winrt/Windows.UI.Xaml.Controls.Primitives.h>
 #include <winrt/Windows.UI.Xaml.Data.h>
+#include "winrt/Windows.UI.Xaml.Documents.h"
+#include "winrt/Windows.UI.Xaml.Interop.h"
 #include <winrt/Windows.UI.Xaml.Input.h>
 #include <winrt/Windows.UI.Xaml.Media.h>
 #include <winrt/Windows.UI.Xaml.Navigation.h>

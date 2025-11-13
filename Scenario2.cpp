@@ -6,6 +6,8 @@
 #include <winrt/Windows.UI.Xaml.Navigation.h>
 
 using namespace winrt;
+using namespace winrt::Windows::Foundation;
+using namespace winrt::Windows::UI::ViewManagement;
 using namespace winrt::Windows::UI::Xaml;
 using namespace winrt::Windows::UI::Xaml::Navigation;
 using namespace winrt::Windows::UI::Xaml::Controls;
@@ -19,7 +21,24 @@ namespace winrt::Hot3dxBlankApp2::implementation
     {
         InitializeComponent();
 
+        LaunchAtSize().IsChecked(ApplicationView::PreferredLaunchWindowingMode() != ApplicationViewWindowingMode::Auto);
+
         
+    }
+
+    void Scenario2::LaunchAtSize_Click(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& e)
+    {
+        if (LaunchAtSize().IsChecked().Value())
+        {
+            // For best results, set the PreferredLaunchViewSize before setting
+            // the PreferredLaunchWindowingMode.
+            ApplicationView::PreferredLaunchViewSize({ 600, 500 });
+            ApplicationView::PreferredLaunchWindowingMode(ApplicationViewWindowingMode::PreferredLaunchViewSize);
+        }
+        else
+        {
+            ApplicationView::PreferredLaunchWindowingMode(ApplicationViewWindowingMode::Auto);
+        }
     }
 
     void Scenario2::OnNavigatedTo(winrt::Windows::UI::Xaml::Navigation::NavigationEventArgs const& e)

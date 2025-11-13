@@ -3,10 +3,12 @@
 #include "Common\StepTimer.h"
 #include "Common\DeviceResources.h"
 #include "Content\Sample3DSceneRenderer.h"
+#include <atomic> // add at top of file with other includes
 
 using namespace DX;
 namespace wf = winrt::Windows::Foundation;
 using namespace winrt::Windows::UI::Core;
+using namespace Concurrency;
 //using namespace winrt::Hot3dxBlankApp2::implementation;
 
 // Renders Direct3D content on the screen.
@@ -20,6 +22,8 @@ namespace winrt::Hot3dxBlankApp2
 		void Update();
 		void StartRenderLoop();
 		void StopRenderLoop();
+		void StartRenderLoopOrig();
+		
 		// Renders the current frame according to the current application state.
 		bool Render();
 
@@ -33,8 +37,8 @@ namespace winrt::Hot3dxBlankApp2
 			// IDeviceNotify
 		virtual void OnDeviceLost();
 		virtual void OnDeviceRestored();
-
-		void ProcessInput();
+		void CreateWindowSizedDependentResources();
+		void ProcessInput(float x, float y) noexcept;
 		// Accessors
 
 		Sample3DSceneRenderer* GetSceneRenderer() { return m_sceneRenderer; }
@@ -69,6 +73,12 @@ namespace winrt::Hot3dxBlankApp2
 
 		winrt::Windows::Foundation::IAsyncAction m_renderLoopWorker;
 		Concurrency::critical_section m_criticalSection;
+		
+		// Render-loop control flag used to stop/start the background worker safely.
+		// Replaces holding a long-lived lock across Update/Render calls.
+		std::atomic<bool> m_runRenderLoop{ false };      // already present in some edits; ensure exists
+		std::atomic<bool> m_workerFinished{ true };      // becomes false while worker runs, true when exited
+
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;
@@ -87,7 +97,10 @@ namespace winrt::Hot3dxBlankApp2
 		// Track current input pointer position.
 		float m_pointerLocationX;
 		float m_pointerLocationY;
-
+		std::atomic<float> m_pointerXAtomic{ 0.0f };
+		std::atomic<float> m_pointerYAtomic{ 0.0f };
+		// Add near other atomic members in Hot3dxBlankApp2Main
+		
 		winrt::Windows::UI::Core::CoreWindowActivationState m_activationState;
 		winrt::Windows::System::VirtualKey m_key;
 	};

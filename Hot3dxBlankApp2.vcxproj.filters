@@ -30,6 +30,7 @@
     <ClCompile Include="Generated Files\module.g.cpp">
       <Filter>Generted Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenariosConfigurations.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -57,6 +58,7 @@
     </ClInclude>
     <ClInclude Include="Scenario1.h" />
     <ClInclude Include="Scenario2.h" />
+    <ClInclude Include="ScenariosConfigurations.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
@@ -189,6 +191,7 @@
     <None Include="README.md" />
     <None Include="PrivacyPolicy.md" />
     <None Include="Package.StoreAssociation.xml" />
+    <None Include="scripts\create_vs_offline.cmd" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">

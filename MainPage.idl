@@ -1,10 +1,30 @@
 namespace Hot3dxBlankApp2
 {
+    enum NotifyType
+    {
+        StatusMessage,
+        ErrorMessage
+    };
+
+    struct ScenarioInfo
+    {
+        String Title;
+        Windows.UI.Xaml.Interop.TypeName ClassType;
+    };
+
     [default_interface]
     runtimeclass MainPage : Windows.UI.Xaml.Controls.Page
     {
         MainPage();
         Int32 MyProperty;
+
+        static String FEATURE_NAME{ get; };
+        static Windows.Foundation.Collections.IVector<ScenarioInfo> scenarios2{ get; };
+
+        static MainPage Current{ get; };
+
+        //void NotifyUser(String strMessage, NotifyType type);
+        void Navigate(Windows.UI.Xaml.Interop.TypeName name, Object parameter);
     }
 
 }

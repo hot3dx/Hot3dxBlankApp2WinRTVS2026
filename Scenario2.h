@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Generated Files\Scenario2.g.h"
-
+#include "Generated Files\Scenario2.xaml.g.h"
 
 #include <Unknwn.h>
 #include <Unknwnbase.h>
@@ -33,6 +33,10 @@ namespace winrt::Hot3dxBlankApp2::implementation
     {
         public:
             Scenario2();
+
+
+            // These methods are public so they can be called by binding.
+            void LaunchAtSize_Click(Windows::Foundation::IInspectable const& sender, Windows::UI::Xaml::RoutedEventArgs const& e);
 
             void OnNavigatedTo(winrt::Windows::UI::Xaml::Navigation::NavigationEventArgs const& e);
 

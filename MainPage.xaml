@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="Hot3dxBlankApp2"
+    xmlns:local="using:Hot3dxBlankApp2"
     mc:Ignorable="d">
 
     <!-- Left Side Controls -->
@@ -39,17 +39,16 @@
            IsPaneOpen="True" Grid.Row="2" DisplayMode="Inline">
                     <SplitView.Pane>
                         <RelativePanel Height="Auto">
-                            <Button x:Name="myButton" Margin="10,50,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button1ClickHandler">Click Me 1</Button>
-                            <Button x:Name="myButton2" Margin="10,100,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button2ClickHandler">Click Me 2</Button>
-
-                            <TextBlock x:Name="Kubed3DHot3dxMaker3DX12" Text="Control Menu" Style="{StaticResource SampleHeaderTextStyle}" TextWrapping="Wrap" Margin="2,10,0,0"/>
+                            
+                            <TextBlock x:Name="Hot3dxBlankApp2" Text=" Scenario Menu" Style="{StaticResource SampleHeaderTextStyle}" TextWrapping="Wrap" Width="98" FontWeight="Bold"/>
                             <!-- Provide an AutomationProperties.Name for a list to a screen reader. A shipping app would localize this. -->
                             <ListBox x:Name="ScenarioControl" SelectionChanged="ScenarioControl_SelectionChanged" AutomationProperties.Name="Scenarios"
- SelectionMode="Single" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0"
- VerticalAlignment="Top" RelativePanel.Below="Kubed3DHot3dxMaker3DX12" Margin="0,0,0,0" RelativePanel.Above="FooterPanel">
+                               SelectionMode="Single" HorizontalAlignment="Left" Background="Transparent" BorderThickness="0"
+                               VerticalAlignment="Top" RelativePanel.Below="Hot3dxBlankApp2" Margin="0,0,0,0" RelativePanel.Above="FooterPanel">
                                 <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={StaticResource ScenarioConverter}}" FontSize="10" FontStyle="Italic" FontFamily="Arial"/>
+                                    <DataTemplate x:DataType="local:ScenarioInfo">
+                                        <TextBlock Text="{x:Bind Title}" Padding="8" />
+                                        <!--TextBlock Text="{Binding Converter={StaticResource ScenarioConverter}}" FontSize="10" FontStyle="Italic" FontFamily="Arial"/-->
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -59,12 +58,15 @@
                    RelativePanel.Above="LinksPanel" Margin="10,10,0,0"
                    TextWrapping="Wrap"/>
                                 <StackPanel x:Name="LinksPanel" Orientation="Horizontal" Margin="10,0,0,10" Height="50">
-                                    <HyperlinkButton Content="Trademarks" Tag="http://github.com/hot3dx"
-                        Click="Footer_Click" FontSize="12" Style="{StaticResource HyperlinkStyle}" />
+                                    <HyperlinkButton x:Name="Trademarks" Margin="7,-35,0,0" Content="TradeMarks" Tag="https://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/blob/main/Assets/Square256x256.png"
+                                        Click="FooterTrademarks_Click" FontSize="12" FontWeight="Bold" Style="{StaticResource HyperlinkStyle}" />
+                                    <TextBlock Text="|"  Style="{StaticResource SeparatorStyle}" VerticalAlignment="Top" />
+                                    <HyperlinkButton x:Name="SourceCode" Margin="-73,0,0,0" Content="Source Code" Tag="http://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026"
+                                        Click="Footer_Click" FontSize="12" FontWeight="Bold" Style="{StaticResource HyperlinkStyle}" />
                                     <TextBlock Text="|"  Style="{StaticResource SeparatorStyle}" VerticalAlignment="Center" />
-                                    <HyperlinkButton Margin="-50,25,0,0" x:Name="PrivacyLink" Content="Privacy"
-                                     Tag="http://privacy.microsoft.com" Click="Footer_Click2"
-                                     FontSize="12" Style="{StaticResource HyperlinkStyle}"/>
+                                    <HyperlinkButton Margin="-77,35,0,0" x:Name="PrivacyLink" Content="Privacy Policy"
+                                     Tag="http://github.com/hot3dx/Hot3dxBlankApp2WinRTVS2026/PrivacyPolicy.md" Click="Footer_Click2"
+                                     FontSize="12" FontWeight="Bold" Style="{StaticResource HyperlinkStyle}"/>
                                 </StackPanel>
                             </StackPanel>
                         </RelativePanel>
@@ -98,9 +100,12 @@
  (If the Image conveyed useful information we'd not use AccessibilityView, but instead provide a localized 
  name for the Image to convey its purpose.) -->
                     <Image x:Name="Hot3dxLogo" Stretch="None" Source="Assets/MakerC1.ico" Margin="0,15,0,0" AutomationProperties.AccessibilityView="Raw" />
-                    <TextBlock x:Name="Header" Text="Hot3dx Freehand DirectX 12 Xaml Drawing Tools" Style="{StaticResource TagLineTextStyle}" Margin="50,15,0,0" />
+                    <TextBlock x:Name="Header" Text="Hot3dx DirectX 12 Xaml C/C++ WinRT Sample" Style="{StaticResource TagLineTextStyle}" Margin="50,15,0,0" FontSize="16" FontWeight="Bold" />
                 </StackPanel>
             </Grid>
+            <Button x:Name="myButton" Margin="10,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button1ClickHandler" Background="#FFFFFF03" Foreground="#FF131300" FontWeight="Bold">Click Me 1</Button>
+            <Button x:Name="myButton2" Margin="10,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button2ClickHandler" Background="#FFFFFF03" Foreground="#FF101000" FontWeight="Bold">Click Me 2</Button>
+
         </StackPanel>
 
 

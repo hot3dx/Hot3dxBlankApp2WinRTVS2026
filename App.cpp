@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 
 #include "App.h"
+#include "ScenariosConfigurations.h"
 #include "MainPage.h"
 #include <debugapi.h>
 using namespace winrt;
@@ -13,12 +14,28 @@ using namespace winrt::Windows::UI::Xaml::Navigation;
 using namespace winrt::Hot3dxBlankApp2;
 using namespace winrt::Hot3dxBlankApp2::implementation;
 
+// These placeholder functions are used if the sample does not
+// implement the corresponding methods. This allows us to simulate
+// C# partial methods in C++.
+
+namespace
+{
+    [[maybe_unused]] void App_Construct(App*) {}
+    [[maybe_unused]] bool App_OverrideOnLaunched(LaunchActivatedEventArgs const&) { return false; }
+    [[maybe_unused]] void App_LaunchCompleted(LaunchActivatedEventArgs const&) {}
+    [[maybe_unused]] void App_OnActivated(IActivatedEventArgs const&) {}
+    [[maybe_unused]] void App_OnFileActivated(FileActivatedEventArgs const&) {}
+    [[maybe_unused]] void App_OnBackgroundActivated(BackgroundActivatedEventArgs const&) {}
+}
+
 /// <summary>
 /// Creates the singleton application object.  This is the first line of authored code
 /// executed, and as such is the logical equivalent of main() or WinMain().
 /// </summary>
 App::App()
 {
+    InitializeComponent();
+
     Suspending({ this, &App::OnSuspending });
 
 #if defined _DEBUG && !defined DISABLE_XAML_GENERATED_BREAK_ON_UNHANDLED_EXCEPTION
@@ -31,6 +48,34 @@ App::App()
         }
     });
 #endif
+
+    App_Construct(this);
+}
+
+winrt::Windows::UI::Xaml::Controls::Frame winrt::Hot3dxBlankApp2::implementation::App::CreateRootFrame()
+{
+    Frame rootFrame{ nullptr };
+    auto content = Window::Current().Content();
+    if (content)
+    {
+        rootFrame = content.try_as<Frame>();
+    }
+
+    // Do not repeat app initialization when the Window already has content,
+    // just ensure that the window is active
+    if (rootFrame == nullptr)
+    {
+        // Create a Frame to act as the navigation context and associate it with
+        // a SuspensionManager key
+        rootFrame = Frame();
+
+        rootFrame.NavigationFailed({ this, &App::OnNavigationFailed });
+
+        // Place the frame in the current Window
+        Window::Current().Content(rootFrame);
+    }
+
+    return rootFrame;
 }
 
 /// <summary>
@@ -95,6 +140,21 @@ void App::OnLaunched(LaunchActivatedEventArgs const& e)
     }
 }
 
+void winrt::Hot3dxBlankApp2::implementation::App::OnActivated(Windows::ApplicationModel::Activation::IActivatedEventArgs const& e)
+{
+    App_OnActivated(e);
+}
+
+void winrt::Hot3dxBlankApp2::implementation::App::OnFileActivated(Windows::ApplicationModel::Activation::FileActivatedEventArgs const& e)
+{
+    App_OnFileActivated(e);
+}
+
+void winrt::Hot3dxBlankApp2::implementation::App::OnBackgroundActivated(Windows::ApplicationModel::Activation::BackgroundActivatedEventArgs const& e)
+{
+    App_OnBackgroundActivated(e);
+}
+
 /// <summary>
 /// Invoked when application execution is being suspended.  Application state is saved
 /// without knowing whether the application will be terminated or resumed with the contents
@@ -102,7 +162,7 @@ void App::OnLaunched(LaunchActivatedEventArgs const& e)
 /// </summary>
 /// <param name="sender">The source of the suspend request.</param>
 /// <param name="e">Details about the suspend request.</param>
-void App::OnSuspending([[maybe_unused]] IInspectable const& sender, [[maybe_unused]] SuspendingEventArgs const& e)
+void App::OnSuspending([[maybe_unused]] IInspectable const&, [[maybe_unused]] winrt::Windows::ApplicationModel::SuspendingEventArgs const&)
 {
     // Save application state and stop any background activity
 }

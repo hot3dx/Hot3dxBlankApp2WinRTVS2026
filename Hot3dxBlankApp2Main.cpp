@@ -6,6 +6,9 @@
 #include <winrt/windows.system.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.System.Threading.h>
+#include <concrt.h>
+#include <atomic>
+#include <thread>
 
 using namespace winrt::Hot3dxBlankApp2;
 using namespace winrt;
@@ -69,45 +72,95 @@ void Hot3dxBlankApp2Main::Update()
 	Render();
 }
 
+
+///////////////////////////////////////////////////////////
+// Replace StartRenderLoop and StopRenderLoop implementations with the versions below.
+// Key changes:
+// - Use m_runRenderLoop atomic to control loop lifetime.
+// - Avoid holding a Concurrency critical_section across Update()/Render() calls.
+// - Snapshot pointers/flags locally to avoid races.
+// - Ensure worker is cancelled and waited on cleanly in StopRenderLoop().
+// Replace / update StartRenderLoop, StopRenderLoop and OnSuspending implementations with these versions.
+// Keep other code as-is.
+
 void Hot3dxBlankApp2Main::StartRenderLoop()
 {
-	// If the animation render loop is already running then do not start another thread.
-	if (m_renderLoopWorker && m_renderLoopWorker.Status() == wf::AsyncStatus::Started)
+	if (!m_deviceResources || !m_sceneRenderer)
 	{
+#ifndef _DEBUG
+		OutputDebugStringW(L"StartRenderLoop: deviceResources or sceneRenderer not ready\n");
+#endif
 		return;
 	}
 
-	// Create a WorkItemHandler that will be run on a background thread.
+	// signal running and reset finished flag
+	m_runRenderLoop.store(true, std::memory_order_release);
+	m_workerFinished.store(false, std::memory_order_release);
+#ifndef _DEBUG
+	OutputDebugStringA("Hot3dxBlankApp2Main::StartRenderLoop - starting worker\n");
+#endif
 	auto handler = WorkItemHandler{ [this](wf::IAsyncAction const& action)
 	{
-		while (action.Status() == wf::AsyncStatus::Started)
-		{
-			critical_section::scoped_lock lock(m_criticalSection);
-
-			auto commandQueue = m_deviceResources->GetCommandQueue();
-			PIXBeginEvent(commandQueue, 0, L"Update");
+			// Worker loop
+			while (action.Status() == wf::AsyncStatus::Started && m_runRenderLoop.load(std::memory_order_acquire))
 			{
-				Update();
-			}
-			PIXEndEvent(commandQueue);
+				auto localDeviceResources = m_deviceResources;
+				auto localSceneRenderer = m_sceneRenderer;
 
-			PIXBeginEvent(commandQueue, 0, L"Render");
-			{
-				if (m_deviceResources->m_isSwapPanelVisible == true)
+				if (!localDeviceResources || !localSceneRenderer)
 				{
-					m_sceneRenderer->Render();
+					Sleep(1);
+					continue;
+				}
+
+				m_pointerLocationX = m_pointerXAtomic.load(std::memory_order_relaxed);
+				m_pointerLocationY = m_pointerYAtomic.load(std::memory_order_relaxed);
+
+				try
+				{
+					m_timer.Tick([&]()
+					{
+						localSceneRenderer->Update(m_timer);
+					});
+				}
+				catch (...)
+				{
+				}
+
+				try
+				{
+					if (localDeviceResources->m_isSwapPanelVisible && localSceneRenderer)
+					{
+						bool sceneRendered = localSceneRenderer->Render();
+						if (sceneRendered)
+						{
+							localDeviceResources->Present();
+						}
+					}
+				}
+				catch (...)
+				{
 				}
 			}
-			PIXEndEvent(commandQueue);
-		}
-	} };
 
-	// Run task on a dedicated high priority background thread.
+			// mark finished for StopRenderLoop to observe
+			m_workerFinished.store(true, std::memory_order_release);
+#ifndef _DEBUG
+			OutputDebugStringA("Hot3dxBlankApp2Main::StartRenderLoop - worker exiting\n");
+#endif
+		} };
+
 	m_renderLoopWorker = ThreadPool::RunAsync(handler, WorkItemPriority::High, WorkItemOptions::TimeSliced);
 }
 
 void Hot3dxBlankApp2Main::StopRenderLoop()
 {
+#ifndef _DEBUG
+	OutputDebugStringA("Hot3dxBlankApp2Main::StopRenderLoop - requested\n");
+#endif // !_DEBUG
+	// Signal worker to stop
+	m_runRenderLoop.store(false, std::memory_order_release);
+
 	if (m_renderLoopWorker)
 	{
 		try
@@ -115,8 +168,48 @@ void Hot3dxBlankApp2Main::StopRenderLoop()
 			m_renderLoopWorker.Cancel();
 		}
 		catch (...) {}
+
+		// Wait until worker signals finished or timeout
+		const int maxWaitMs = 5000;
+		int waited = 0;
+		while (!m_workerFinished.load(std::memory_order_acquire) && waited < maxWaitMs)
+		{
+			Sleep(1);
+			++waited;
+		}
+
+		if (!m_workerFinished.load(std::memory_order_acquire))
+		{
+#ifndef _DEBUG
+			OutputDebugStringA("WARN: StopRenderLoop timeout waiting for worker to finish\n");
+#endif
+		}
+		else
+		{
+#ifndef _DEBUG
+			OutputDebugStringA("Hot3dxBlankApp2Main::StopRenderLoop - worker finished\n");
+#endif
+		}
+
+		// Ensure GPU idle before continuing to release resources
+		try
+		{
+			if (m_deviceResources)
+			{
+				m_deviceResources->WaitForGpu();
+			}
+		}
+		catch (...) {}
+
+		m_renderLoopWorker = nullptr;
+	}
+	else
+	{
+		try { if (m_deviceResources) m_deviceResources->WaitForGpu(); }
+		catch (...) {}
 	}
 }
+
 
 // Renders the current frame according to the current application state.
 // Returns true if the frame was rendered and is ready to be displayed.
@@ -128,18 +221,24 @@ bool Hot3dxBlankApp2Main::Render()
 	if (m_sceneRenderer)
 	{
 		sceneRendered = m_sceneRenderer->Render();
-		//OutputDebugStringA(sceneRendered ? "INFO: SceneRenderer::Render returned TRUE\n" : "INFO: SceneRenderer::Render returned FALSE\n");
+#ifndef _DEBUG
+		OutputDebugStringA(sceneRendered ? "INFO: SceneRenderer::Render returned TRUE\n" : "INFO: SceneRenderer::Render returned FALSE\n");
+#endif
 	}
 
 	// Make sure we actually present the swap chain
 	if (m_deviceResources && sceneRendered)
 	{
-		//OutputDebugStringA("INFO: Calling DeviceResources::Present()\n");
+#ifndef _DEBUG
+		OutputDebugStringA("INFO: Calling DeviceResources::Present()\n");
+#endif
 		m_deviceResources->Present();
 	}
 	else
 	{
-		//OutputDebugStringA("WARN: Skipping Present (no deviceResources or nothing rendered)\n");
+#ifndef _DEBUG
+		OutputDebugStringA("WARN: Skipping Present (no deviceResources or nothing rendered)\n");
+#endif
 	}
 
 	return sceneRendered;
@@ -161,15 +260,57 @@ void Hot3dxBlankApp2Main::OnWindowSizeChanged()
 // Notifies the app that it is being suspended.
 void Hot3dxBlankApp2Main::OnSuspending()
 {
+#ifndef _DEBUG
+	OutputDebugStringA("Hot3dxBlankApp2Main::OnSuspending - begin\n");
+#endif
+	// Stop render thread, wait for GPU and save state.
+	try
+	{
+		StopRenderLoop();
+
+		if (m_deviceResources)
+		{
+			m_deviceResources->WaitForGpu();
+
+			try
+			{
+				m_deviceResources->Trim();
+#ifndef _DEBUG
+	OutputDebugStringA("Hot3dxBlankApp2Main::OnSuspending - DeviceResources::Trim called\n");
+#endif // !_DEBUG
+			}
+			catch (...)
+			{
+#ifndef _DEBUG
+				OutputDebugStringA("Hot3dxBlankApp2Main::OnSuspending - Trim threw\n");
+#endif // !_DEBUG
+			}
+		}
+
+		if (m_sceneRenderer)
+		{
+			m_sceneRenderer->SaveState();
+		}
+	}
+	catch (...)
+	{
+		// best-effort
+	}
+
+	// Existing suspend work can follow.
 	// TODO: Replace this with your app's suspending logic.
 
 	// Process lifetime management may terminate suspended apps at any time, so it is
 	// good practice to save any state that will allow the app to restart where it left off.
 
-	m_sceneRenderer->SaveState();
+	//m_sceneRenderer->SaveState();
 
 	// If your application uses video memory allocations that are easy to re-create,
 	// consider releasing that memory to make it available to other applications.
+
+#ifndef _DEBUG
+	OutputDebugStringA("Hot3dxBlankApp2Main::OnSuspending - end\n");
+#endif
 }
 
 // Notifes the app that it is no longer suspended.
@@ -195,6 +336,12 @@ void Hot3dxBlankApp2Main::OnDeviceLost()
 void Hot3dxBlankApp2Main::OnDeviceRestored()
 {
 	m_sceneRenderer->OnDeviceRestored();
+}
+
+void winrt::Hot3dxBlankApp2::Hot3dxBlankApp2Main::CreateWindowSizedDependentResources()
+{
+	if (m_sceneRenderer->GetLoadingComplete() == false)return;
+		m_sceneRenderer->CreateWindowSizeDependentResources();
 }
 
 void Hot3dxBlankApp2Main::WindowActivationChanged(winrt::Windows::UI::Core::CoreWindowActivationState activationState)
@@ -236,8 +383,11 @@ void Hot3dxBlankApp2Main::KeyUp(winrt::Windows::System::VirtualKey const& key)
 	m_sceneRenderer->TrackingUpdate(m_pointerLocationX, m_pointerLocationY);
 }
 
-void Hot3dxBlankApp2::Hot3dxBlankApp2Main::ProcessInput()
+void Hot3dxBlankApp2::Hot3dxBlankApp2Main::ProcessInput(float x, float y) noexcept
 {
 	// TODO: Add per frame input handling here.
+	m_pointerXAtomic.store(x, std::memory_order_relaxed);
+	m_pointerYAtomic.store(y, std::memory_order_relaxed);
+
 	m_sceneRenderer->TrackingUpdate(m_pointerLocationX, m_pointerLocationY);
 }
