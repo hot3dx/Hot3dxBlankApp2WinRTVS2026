@@ -26,6 +26,15 @@ namespace winrt::Hot3dxBlankApp2::implementation
         virtual ::winrt::Windows::UI::Xaml::Markup::IComponentConnector GetBindingConnector(int32_t connectionId, IInspectable const& target);
         void UnloadObject(::winrt::Windows::UI::Xaml::DependencyObject const& dependencyObject);
         void DisconnectUnloadedObject(int32_t connectionId);
+
+        ::winrt::Windows::UI::Xaml::Controls::CheckBox LaunchAtSize()
+        {
+            return _LaunchAtSize;
+        }
+        void LaunchAtSize(::winrt::Windows::UI::Xaml::Controls::CheckBox value)
+        {
+            _LaunchAtSize = value;
+        }
         
     protected:
         bool _contentLoaded{false};
@@ -33,6 +42,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
     private:
         struct Scenario2_obj1_Bindings;
 
+        ::winrt::Windows::UI::Xaml::Controls::CheckBox _LaunchAtSize{nullptr};
     };
 }
 

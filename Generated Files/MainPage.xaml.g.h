@@ -6,6 +6,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
+#include "XamlBindingInfo.xaml.g.h"
 
 namespace winrt::Hot3dxBlankApp2::implementation
 {
@@ -43,6 +44,24 @@ namespace winrt::Hot3dxBlankApp2::implementation
         void HeaderPanel(::winrt::Windows::UI::Xaml::Controls::StackPanel value)
         {
             _HeaderPanel = value;
+        }
+
+        ::winrt::Windows::UI::Xaml::Controls::Button myButton()
+        {
+            return _myButton;
+        }
+        void myButton(::winrt::Windows::UI::Xaml::Controls::Button value)
+        {
+            _myButton = value;
+        }
+
+        ::winrt::Windows::UI::Xaml::Controls::Button myButton2()
+        {
+            return _myButton2;
+        }
+        void myButton2(::winrt::Windows::UI::Xaml::Controls::Button value)
+        {
+            _myButton2 = value;
         }
 
         ::winrt::Windows::UI::Xaml::Controls::SplitView Splitter()
@@ -90,31 +109,13 @@ namespace winrt::Hot3dxBlankApp2::implementation
             _Hamburger = value;
         }
 
-        ::winrt::Windows::UI::Xaml::Controls::Button myButton()
+        ::winrt::Windows::UI::Xaml::Controls::TextBlock Hot3dxBlankApp2()
         {
-            return _myButton;
+            return _Hot3dxBlankApp2;
         }
-        void myButton(::winrt::Windows::UI::Xaml::Controls::Button value)
+        void Hot3dxBlankApp2(::winrt::Windows::UI::Xaml::Controls::TextBlock value)
         {
-            _myButton = value;
-        }
-
-        ::winrt::Windows::UI::Xaml::Controls::Button myButton2()
-        {
-            return _myButton2;
-        }
-        void myButton2(::winrt::Windows::UI::Xaml::Controls::Button value)
-        {
-            _myButton2 = value;
-        }
-
-        ::winrt::Windows::UI::Xaml::Controls::TextBlock Kubed3DHot3dxMaker3DX12()
-        {
-            return _Kubed3DHot3dxMaker3DX12;
-        }
-        void Kubed3DHot3dxMaker3DX12(::winrt::Windows::UI::Xaml::Controls::TextBlock value)
-        {
-            _Kubed3DHot3dxMaker3DX12 = value;
+            _Hot3dxBlankApp2 = value;
         }
 
         ::winrt::Windows::UI::Xaml::Controls::ListBox ScenarioControl()
@@ -151,6 +152,24 @@ namespace winrt::Hot3dxBlankApp2::implementation
         void LinksPanel(::winrt::Windows::UI::Xaml::Controls::StackPanel value)
         {
             _LinksPanel = value;
+        }
+
+        ::winrt::Windows::UI::Xaml::Controls::HyperlinkButton Trademarks()
+        {
+            return _Trademarks;
+        }
+        void Trademarks(::winrt::Windows::UI::Xaml::Controls::HyperlinkButton value)
+        {
+            _Trademarks = value;
+        }
+
+        ::winrt::Windows::UI::Xaml::Controls::HyperlinkButton SourceCode()
+        {
+            return _SourceCode;
+        }
+        void SourceCode(::winrt::Windows::UI::Xaml::Controls::HyperlinkButton value)
+        {
+            _SourceCode = value;
         }
 
         ::winrt::Windows::UI::Xaml::Controls::HyperlinkButton PrivacyLink()
@@ -198,27 +217,31 @@ namespace winrt::Hot3dxBlankApp2::implementation
             _StatusBlock = value;
         }
         
+         ::winrt::com_ptr<::winrt::Hot3dxBlankApp2::implementation::XamlBindings> Bindings;
+
     protected:
         bool _contentLoaded{false};
 
     private:
-        struct MainPage_obj19_Bindings;
+        struct MainPage_obj21_Bindings;
         struct MainPage_obj1_Bindings;
 
         ::winrt::Windows::UI::Xaml::Controls::SwapChainPanel _swapChainPanel{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _HeaderPanel{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::Button _myButton{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::Button _myButton2{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::SplitView _Splitter{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _HeaderPanel1{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::Image _Hot3dxLogo{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::TextBlock _Header{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::FontIcon _Hamburger{nullptr};
-        ::winrt::Windows::UI::Xaml::Controls::Button _myButton{nullptr};
-        ::winrt::Windows::UI::Xaml::Controls::Button _myButton2{nullptr};
-        ::winrt::Windows::UI::Xaml::Controls::TextBlock _Kubed3DHot3dxMaker3DX12{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::TextBlock _Hot3dxBlankApp2{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::ListBox _ScenarioControl{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _FooterPanel{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::TextBlock _Copyright{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _LinksPanel{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::HyperlinkButton _Trademarks{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::HyperlinkButton _SourceCode{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::HyperlinkButton _PrivacyLink{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::Frame _ScenarioFrame{nullptr};
         ::winrt::Windows::UI::Xaml::Controls::StackPanel _StatusPanel{nullptr};
