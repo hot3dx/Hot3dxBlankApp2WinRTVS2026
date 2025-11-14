@@ -36,13 +36,13 @@ namespace winrt::Hot3dxBlankApp2::implementation
             _textBlockScenario1 = value;
         }
 
-        ::winrt::Windows::UI::Xaml::Controls::TextBlock textBlockPlaceHolder()
+        ::winrt::Windows::UI::Xaml::Controls::Button SponsorButton()
         {
-            return _textBlockPlaceHolder;
+            return _SponsorButton;
         }
-        void textBlockPlaceHolder(::winrt::Windows::UI::Xaml::Controls::TextBlock value)
+        void SponsorButton(::winrt::Windows::UI::Xaml::Controls::Button value)
         {
-            _textBlockPlaceHolder = value;
+            _SponsorButton = value;
         }
         
     protected:
@@ -52,7 +52,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
         struct Scenario1_obj1_Bindings;
 
         ::winrt::Windows::UI::Xaml::Controls::TextBlock _textBlockScenario1{nullptr};
-        ::winrt::Windows::UI::Xaml::Controls::TextBlock _textBlockPlaceHolder{nullptr};
+        ::winrt::Windows::UI::Xaml::Controls::Button _SponsorButton{nullptr};
     };
 }
 

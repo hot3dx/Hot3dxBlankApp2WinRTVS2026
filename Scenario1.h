@@ -48,6 +48,8 @@ namespace winrt::Hot3dxBlankApp2::implementation
 
         void UpdateContent();
            
+    public:
+        void Sponsor_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e);
     };
 }
 

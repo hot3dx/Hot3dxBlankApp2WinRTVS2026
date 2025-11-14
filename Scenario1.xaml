@@ -6,11 +6,38 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="using:Hot3dxBlankApp2"
     mc:Ignorable="d">
-   
+
     <Grid Padding="12">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Background="White" Width="500">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Background="White" Height="900" Width="500">
             <TextBlock x:Name="textBlockScenario1" Text="Scenario 1" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" RequestedTheme="Light" />
-            <TextBlock x:Name="textBlockPlaceHolder" Text="Placeholder page. Replace with migrated content (e.g. RotoDraw)" RequestedTheme="Light" Height="700" />
+            <!-- Centered huge Sponsor button -->
+            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Button x:Name="SponsorButton"
+        Click="Sponsor_Click"
+        HorizontalAlignment="Center"
+        Width="350"
+        Height="320"
+        FontWeight="Bold"
+        Padding="20"
+        Background="#FF1B6CE2"
+        Foreground="White"
+        HorizontalContentAlignment="Center"
+        VerticalContentAlignment="Center"
+        AutomationProperties.Name="Sponsor Button"
+        ToolTipService.ToolTip="Open sponsor page (GitHub Sponsors)">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                        <TextBlock Text="❤️ SUPPORT THE PROJECT"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"/>
+                        <TextBlock Text="Click to Sponsor"
+                   FontSize="18"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
         </StackPanel>
     </Grid>
 </Page>

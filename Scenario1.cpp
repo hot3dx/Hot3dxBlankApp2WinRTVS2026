@@ -82,3 +82,25 @@ namespace winrt::Hot3dxBlankApp2::implementation
        // ReportViewHeight().Text(to_hstring(bounds.Height));
     }
 }
+void winrt::Hot3dxBlankApp2::implementation::Scenario1::Sponsor_Click(winrt::Windows::Foundation::IInspectable const& sender, winrt::Windows::UI::Xaml::RoutedEventArgs const& e)
+{
+    try
+    {
+        // Replace URL with your actual sponsor page
+        auto uri = winrt::Windows::Foundation::Uri{ L"https://github.com/sponsors/hot3dx" };
+        auto op = winrt::Windows::System::Launcher::LaunchUriAsync(uri);
+        op.Completed([](winrt::Windows::Foundation::IAsyncOperation<bool> const& asyncOp,
+            winrt::Windows::Foundation::AsyncStatus const& status)
+            {
+                if (status == winrt::Windows::Foundation::AsyncStatus::Completed)
+                {
+                    bool success = asyncOp.GetResults();
+                    (void)success; // optional: log or ignore
+                }
+            });
+    }
+    catch (...)
+    {
+        // Keep failures graceful (match existing Footer handlers)
+    }
+}
