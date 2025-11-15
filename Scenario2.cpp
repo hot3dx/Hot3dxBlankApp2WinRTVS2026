@@ -32,7 +32,7 @@ namespace winrt::Hot3dxBlankApp2::implementation
         {
             // For best results, set the PreferredLaunchViewSize before setting
             // the PreferredLaunchWindowingMode.
-            ApplicationView::PreferredLaunchViewSize({ 600, 500 });
+            ApplicationView::PreferredLaunchViewSize({ 1400, 1200 });
             ApplicationView::PreferredLaunchWindowingMode(ApplicationViewWindowingMode::PreferredLaunchViewSize);
         }
         else

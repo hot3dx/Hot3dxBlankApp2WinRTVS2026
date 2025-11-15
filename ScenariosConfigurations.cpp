@@ -22,7 +22,7 @@ hstring implementation::MainPage::FEATURE_NAME()
 winrt::Windows::Foundation::Collections::IVector<winrt::Hot3dxBlankApp2::ScenarioInfo> scenariosIn =
 single_threaded_observable_vector<winrt::Hot3dxBlankApp2::ScenarioInfo>(
     {
-        winrt::Hot3dxBlankApp2::ScenarioInfo{ L"Resizing the view", xaml_typename<winrt::Hot3dxBlankApp2::Scenario1>() },
+        winrt::Hot3dxBlankApp2::ScenarioInfo{ L"Sponsor the Project", xaml_typename<winrt::Hot3dxBlankApp2::Scenario1>() },
         winrt::Hot3dxBlankApp2::ScenarioInfo{ L"Launching at a custom size", xaml_typename<winrt::Hot3dxBlankApp2::Scenario2>() },
     });
 

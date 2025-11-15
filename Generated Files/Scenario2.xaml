@@ -35,7 +35,7 @@ Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="500">
                     Check or uncheck the box below, and then exit and restart the app.
                         </TextBlock>
                         <CheckBox x:ConnectionId='2' x:Name="LaunchAtSize" Margin="0,10,0,0"
-                          Content="Launch at 600 × 500"
+                          Content="Launch at 1400 × 1200"
                                                     />
                     </StackPanel>
                 </ScrollViewer>
